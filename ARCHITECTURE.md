@@ -29,24 +29,30 @@ flowchart TD
         CLI_BIN["CLI / Bin (bin.ts)"]
         WRAPPERS["Tool Wrappers (mb-*)"]
         HOOKS["Shell & Task Hooks"]
+        MCP["Stdio MCP Server (server.ts)"]
     end
 
     subgraph Core Engine
         CONTEXT["Context & Handoff Engine (context.ts)"]
+        CAPTURE["Observations Capture & Scrub (capture.ts)"]
+        CONSOLIDATE["Dual Consolidation Engine (consolidate.ts)"]
+        BACKEND["Universal Memory Backend (backend.ts)"]
         STORE["Atomic JSONL Store (store.ts)"]
         LOCK["Lockfile & Concurrency (fs-utils.ts)"]
         REDACT["Redaction & Security (redaction.ts, crypto.ts)"]
-        SEARCH["Search & Vector Engine (search.ts, vector.ts)"]
+        SEARCH["Hybrid Search: FTS5 + Dense Vectors (search.ts, vector.ts)"]
         DOCTOR["Health & Audit Engine (doctor.ts)"]
+        STATS["Observability & Stats (stats.ts)"]
     end
 
     subgraph Storage: .memory-bridge/
         CONFIG["config.json"]
         PROJ_MD["project-context.md"]
         HANDOFF_MD["handoff.md"]
+        OBSERVATIONS["observations/*.jsonl"]
         DECISIONS["decisions.jsonl"]
         SESSIONS["sessions/YYYY-MM-DD.jsonl"]
-        SQLITE["vector.sqlite (node:sqlite)"]
+        SQLITE["vector.sqlite (FTS5 + Dense Vectors)"]
         LOCKFILE[".lock"]
     end
 

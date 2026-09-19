@@ -26,6 +26,16 @@ Every tool reads and writes the same memory contract across a complete 5-stage l
 4. **Retrieve**: Instant contextual recovery via CLI (`resume`) or stdio JSON-RPC MCP (`memory-bridge mcp`)
 5. **Handoff**: Clean, human-readable markdown generation (`handoff build`)
 
+```mermaid
+flowchart TD
+    A["Agentes / CLIs\n(Claude Code, Codex, Gemini, Hermes, Qwen, Cursor, Aider, etc.)"] --> B["Camada de Entrada\n(CLI, Wrappers mb-*, stdio MCP Server)"]
+    B --> C["Capture Layer\n(.memory-bridge/observations/ com path exclusion e rotação)"]
+    C --> D["Consolidação Dual\n(Zero-LLM determinístico padrão + LLM opcional)"]
+    D --> E["Memory Store\n(sessions/*.jsonl, decisions.jsonl, handoff.md, project-context.md)"]
+    E --> F["Motor Híbrido SQLite\n(FTS5 BM25 + Embeddings Densos 192d + Fusão RRF)"]
+    F --> G["Contexto & Handoff\n(memory-bridge resume, handoff build, memory_resume)"]
+```
+
 This is how context survives tool and model switching.
 
 ## ⚡ Zero Background Daemons: Does npm need to be running?
