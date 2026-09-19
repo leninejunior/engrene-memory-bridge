@@ -96,7 +96,17 @@ export async function loadConfig(workspace: string): Promise<ConfigLoadResult> {
       ...(parsed.semanticSearch?.model ? { model: parsed.semanticSearch.model } : {}),
       ...(parsed.semanticSearch?.endpoint ? { endpoint: parsed.semanticSearch.endpoint } : {}),
       ...(parsed.semanticSearch?.apiKeyEnvVar ? { apiKeyEnvVar: parsed.semanticSearch.apiKeyEnvVar } : {})
-    }
+    },
+    ...(parsed.capture
+      ? {
+          capture: {
+            enabled: parsed.capture.enabled ?? false,
+            retentionDays: parsed.capture.retentionDays ?? 7,
+            maxSessions: parsed.capture.maxSessions ?? 30,
+            exclude: Array.isArray(parsed.capture.exclude) ? parsed.capture.exclude : [".env*", "node_modules/**"]
+          }
+        }
+      : {})
   };
 
   return { config, paths, warnings };
@@ -155,14 +165,19 @@ export async function initWorkspace(options: InitOptions): Promise<InitResult> {
   const base = defaultConfig(options.projectName || path.basename(workspace));
   base.redaction.enabled = options.disableRedaction !== true;
   base.encryption.enabled = Boolean(options.enableEncryption);
-  base.semanticSearch.enabled = Boolean(options.enableSemanticSearch);
+
+  if (options.enableSemanticSearch) {
+    base.semanticSearch.enabled = true;
+    base.semanticSearch.provider = "local";
+  }
 
   if (!(await exists(paths.configFile))) {
     await writeJsonFile(paths.configFile, base, paths.lockFile);
     created.push(paths.configFile);
   } else {
     const existing = (await readJsonFile<BridgeConfig>(paths.configFile)) ?? base;
-    const existingProvider = (existing.semanticSearch?.provider || base.semanticSearch.provider) as SemanticProvider;
+    const isSemEnabled = existing.semanticSearch?.enabled ?? base.semanticSearch.enabled;
+    const existingProvider = (existing.semanticSearch?.provider || (isSemEnabled ? "local" : "disabled")) as SemanticProvider;
     const merged: BridgeConfig = {
       ...base,
       ...existing,
@@ -177,7 +192,7 @@ export async function initWorkspace(options: InitOptions): Promise<InitResult> {
         keyEnvVar: existing.encryption?.keyEnvVar || base.encryption.keyEnvVar
       },
       semanticSearch: {
-        enabled: existing.semanticSearch?.enabled ?? base.semanticSearch.enabled,
+        enabled: isSemEnabled,
         provider: existingProvider,
         dimensions: existing.semanticSearch?.dimensions ?? base.semanticSearch.dimensions,
         ...(existing.semanticSearch?.model ? { model: existing.semanticSearch.model } : {}),

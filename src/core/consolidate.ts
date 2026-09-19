@@ -66,16 +66,27 @@ export async function runConsolidation(
           tool = obs.tool || tool;
 
           if (obs.type === "user_prompt") {
-            const prompt = String(obs.payload?.prompt ?? obs.payload?.intent ?? "").trim();
+            const prompt = String(
+              obs.payload?.prompt ??
+              obs.payload?.intent ??
+              obs.payload?.content ??
+              ""
+            ).trim();
             if (prompt) {
               intent = prompt.slice(0, 120);
             }
           } else if (obs.type === "tool_call") {
-            const toolName = String(obs.payload?.tool ?? "action");
-            const filePath = String(obs.payload?.path ?? obs.payload?.file ?? "");
+            const toolName = String(obs.payload?.tool ?? obs.payload?.content ?? "action");
             actions.push(`Executed ${toolName}`);
-            if (filePath && !artifacts.includes(filePath)) {
-              artifacts.push(filePath);
+
+            const fileList = Array.isArray(obs.payload?.files)
+              ? obs.payload.files.map(String)
+              : [obs.payload?.path, obs.payload?.file].filter(Boolean).map(String);
+
+            for (const f of fileList) {
+              if (f && !artifacts.includes(f)) {
+                artifacts.push(f);
+              }
             }
           } else if (obs.type === "tool_result") {
             const resultStr = JSON.stringify(obs.payload || "");

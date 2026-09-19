@@ -258,7 +258,8 @@ export async function generateEmbedding(text: string, config: BridgeConfig): Pro
         }
       }
     } catch {
-      // Fallback to local dense embedding on error
+      // Fallback: Return empty vector on external API failure to prevent vector dimension corruption
+      return [];
     }
   }
 
@@ -293,7 +294,8 @@ export async function generateEmbedding(text: string, config: BridgeConfig): Pro
         }
       }
     } catch {
-      // Fallback to local dense embedding on error
+      // Fallback: Return empty vector on external API failure to prevent vector dimension corruption
+      return [];
     }
   }
 
@@ -391,27 +393,29 @@ export async function upsertSemanticDoc(
   }
   try {
     const vector = await generateEmbedding(doc.text, config);
-    db.prepare(
+    if (vector.length > 0) {
+      db.prepare(
+        `
+        INSERT INTO docs (id, source, ts, ref, text, vector, memory_type)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          source = excluded.source,
+          ts = excluded.ts,
+          ref = excluded.ref,
+          text = excluded.text,
+          vector = excluded.vector,
+          memory_type = excluded.memory_type
       `
-      INSERT INTO docs (id, source, ts, ref, text, vector, memory_type)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(id) DO UPDATE SET
-        source = excluded.source,
-        ts = excluded.ts,
-        ref = excluded.ref,
-        text = excluded.text,
-        vector = excluded.vector,
-        memory_type = excluded.memory_type
-    `
-    ).run(
-      doc.id,
-      doc.source,
-      doc.ts,
-      doc.ref ?? null,
-      doc.text,
-      JSON.stringify(vector),
-      doc.memory_type ?? "episodic"
-    );
+      ).run(
+        doc.id,
+        doc.source,
+        doc.ts,
+        doc.ref ?? null,
+        doc.text,
+        JSON.stringify(vector),
+        doc.memory_type ?? "episodic"
+      );
+    }
 
     // Sync into FTS5 virtual table
     db.prepare("DELETE FROM fts_docs WHERE id = ?").run(doc.id);
@@ -442,6 +446,9 @@ export async function semanticSearch(
   }
   try {
     const queryVector = await generateEmbedding(query, config);
+    if (queryVector.length === 0) {
+      return [];
+    }
     const rows = db
       .prepare("SELECT id, source, ts, ref, text, vector, memory_type FROM docs ORDER BY ts DESC LIMIT 1000")
       .all() as Array<{

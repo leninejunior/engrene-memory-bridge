@@ -1,3 +1,4 @@
+import { filterActiveDecisions } from "./context.js";
 import type { BridgeConfig, SearchHit } from "../types/events.js";
 import { readDecisionEvents, readHandoff, readProjectContext, readSessionEvents } from "./store.js";
 import { ftsSearch, isSqliteSupported, semanticEnabled, semanticSearch, upsertSemanticDoc } from "./vector.js";
@@ -89,7 +90,8 @@ export async function indexSemanticFromState(workspace: string, config: BridgeCo
     });
   }
 
-  for (const event of decisionsResult.events) {
+  const { active: activeDecisions } = filterActiveDecisions(decisionsResult.events);
+  for (const event of activeDecisions) {
     await upsertSemanticDoc(workspace, config, {
       id: `decision:${event.id}`,
       source: "decisions",
@@ -155,7 +157,8 @@ export async function searchMemory(args: {
     }
   }
 
-  for (const event of decisionsResult.events) {
+  const { active: activeDecisions } = filterActiveDecisions(decisionsResult.events);
+  for (const event of activeDecisions) {
     const content = [event.title, event.context, event.decision, event.impact, ...event.supersedes].join("\n");
     const score = bm25Score(query, content);
     if (score > 0) {
@@ -196,7 +199,6 @@ export async function searchMemory(args: {
   const sortedTextHits = textHits.sort((a, b) => b.score - a.score).slice(0, Math.max(1, limit));
   let lexicalHits = sortedTextHits;
   if (semanticEnabled(config) && (await isSqliteSupported())) {
-    await indexSemanticFromState(workspace, config);
     const ftsHits = await ftsSearch(workspace, config, query, limit);
     if (ftsHits.length > 0) {
       lexicalHits = ftsHits;
@@ -212,7 +214,11 @@ export async function searchMemory(args: {
     return { hits: lexicalHits, warnings };
   }
 
-  const semanticHits = await semanticSearch(workspace, config, query, limit);
+  let semanticHits = await semanticSearch(workspace, config, query, limit);
+  if (semanticHits.length === 0) {
+    await indexSemanticFromState(workspace, config);
+    semanticHits = await semanticSearch(workspace, config, query, limit);
+  }
 
   if (mode === "semantic") {
     if (semanticHits.length === 0) {

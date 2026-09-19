@@ -4,7 +4,10 @@ import path from "node:path";
 import test from "node:test";
 
 import { filterActiveDecisions } from "../../src/core/context.js";
-import { withLock, appendJsonlAtomic } from "../../src/core/fs-utils.js";
+import { initWorkspace, loadConfig } from "../../src/core/config.js";
+import { withLock, appendJsonlAtomic, writeJsonFile } from "../../src/core/fs-utils.js";
+import { resolveBridgePaths } from "../../src/core/paths.js";
+import { semanticEnabled } from "../../src/core/vector.js";
 import { makeTempWorkspace } from "../helpers.js";
 import type { DecisionEvent } from "../../src/types/events.js";
 
@@ -75,4 +78,41 @@ test("appendJsonlAtomic appends without overwriting existing content", async () 
   assert.equal(lines.length, 2);
   assert.deepEqual(JSON.parse(lines[0]!), { item: 1 });
   assert.deepEqual(JSON.parse(lines[1]!), { item: 2 });
+});
+
+test("initWorkspace with enableSemanticSearch sets provider to local", async () => {
+  const workspace = await makeTempWorkspace("mb-init-sem-");
+  const { config } = await initWorkspace({
+    workspace,
+    enableSemanticSearch: true
+  });
+
+  assert.equal(config.semanticSearch.enabled, true);
+  assert.equal(config.semanticSearch.provider, "local");
+  assert.equal(semanticEnabled(config), true);
+});
+
+test("loadConfig preserves capture settings from config.json", async () => {
+  const workspace = await makeTempWorkspace("mb-load-cap-");
+  const { config: initialConfig } = await initWorkspace({ workspace });
+  const paths = resolveBridgePaths(workspace);
+
+  const customConfig = {
+    ...initialConfig,
+    capture: {
+      enabled: true,
+      retentionDays: 14,
+      maxSessions: 100,
+      exclude: ["*.secret", ".env.local"]
+    }
+  };
+
+  await writeJsonFile(paths.configFile, customConfig);
+
+  const { config: reloaded } = await loadConfig(workspace);
+  assert.ok(reloaded.capture);
+  assert.equal(reloaded.capture?.enabled, true);
+  assert.equal(reloaded.capture?.retentionDays, 14);
+  assert.equal(reloaded.capture?.maxSessions, 100);
+  assert.deepEqual(reloaded.capture?.exclude, ["*.secret", ".env.local"]);
 });
