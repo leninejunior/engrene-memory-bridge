@@ -21,6 +21,17 @@
 
 ---
 
+## 🚀 Key Advantages / Principais Vantagens
+
+- 💸 **Economia Extrema de Tokens (~98% de redução)**: Em vez de reinsolar 10.000 a 50.000+ tokens de históricos/transcrições brutas a cada mensagem, o Memory Bridge consolida o contexto em resumos cirúrgicos e busca híbrida, injetando apenas **~300 a 500 tokens**.
+- 📂 **100% Isolado por Repositório**: Cada projeto mantém sua própria pasta `.memory-bridge/` (salva no `.gitignore`). As memórias, vetores e decisões de um projeto **nunca se misturam nem vazam** para outro.
+- 🔒 **Local-First & Privacidade Absoluta**: Zero envio de código, decisões ou logs para APIs ou nuvens de terceiros. Todo o histórico permanece criptografado/auditável no seu disco.
+- ⚡ **Zero Daemons / Zero Servidores em Background**: Não roda serviços no background, não consome memória RAM em standby e não drena bateria. Execução instantânea, limpa e stateless.
+- 🤖 **Universal & Independente de Ferramenta**: Alterne instantaneamente entre **Claude Code, Cursor, Codex, Gemini, Antigravity, Windsurf, Aider, Hermes e Qwen** sem perder a continuidade do projeto.
+- 🔍 **Motor Híbrido SQLite (BM25 + Vetores 256d + RRF)**: Combina o poder léxico do **SQLite FTS5** com **Embeddings Densos (256d)** e fusão **RRF com decaimento temporal de recência**.
+
+---
+
 ## Main value
 
 Use this when you want one tool session to continue from another tool session.
