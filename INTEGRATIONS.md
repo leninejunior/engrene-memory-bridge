@@ -116,10 +116,22 @@ Map these commands:
   - `memory-bridge log --tool <tool> ... --json`
   - `memory-bridge handoff build --json`
 
-## Option D: Antigravity Native Skill
+## Option D: Native Skills & AI Agent Guidelines
 
-For developers using Google Antigravity IDE or CLI, `engrene-memory-bridge` includes a native skill:
+For developers using AI agents (Antigravity, Claude Code, Cursor, GitHub Copilot, Codex, Windsurf), `engrene-memory-bridge` includes first-class guidelines and native skills pre-configured in the repository:
 
+### 1. Ready-to-Use Agent Instructions
+- **Universal Agent Standard**: [`AGENTS.md`](./AGENTS.md)
+- **Claude Code CLI**: [`CLAUDE.md`](./CLAUDE.md)
+- **Cursor IDE / Composer**: [`.cursorrules`](./.cursorrules)
+- **GitHub Copilot**: [`.github/copilot-instructions.md`](./.github/copilot-instructions.md)
+
+### 2. Native Skill Package
+The repository provides a declarative agent skill:
+- In-repo standard path: `.agents/skills/memory-bridge/SKILL.md`
+- Source template path: `skills/memory-bridge/SKILL.md`
+
+#### Antigravity Setup:
 ```bash
 # View setup instructions:
 memory-bridge hook print antigravity
@@ -133,10 +145,11 @@ mkdir -p .agents/skills/memory-bridge
 cp skills/memory-bridge/SKILL.md .agents/skills/memory-bridge/SKILL.md
 ```
 
-Once installed, Antigravity automatically detects the skill and will:
+Once installed or detected, any AI agent will automatically:
 1. Run `memory-bridge resume` before executing tasks.
 2. Record `memory-bridge decision add` whenever architectural choices are made.
-3. Run `memory-bridge log` and `memory-bridge handoff build` upon task completion.
+3. Run `npm test` and `memory-bridge lint` to verify stability.
+4. Run `memory-bridge log` and `memory-bridge handoff build` upon task completion.
 
 ## Option E: Windows scripts (PowerShell/cmd)
 

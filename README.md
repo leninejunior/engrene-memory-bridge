@@ -139,6 +139,21 @@ memory-bridge handoff build
 memory-bridge resume --for claude
 ```
 
+## 🤖 AI Agent Standards & Native Skills
+
+Memory Bridge provides zero-setup, first-class instructions so **any AI agent** entering this repository immediately knows how to inspect context, record decisions, run tests, and maintain continuous memory:
+
+| Configuration File | Target AI Tool / Standard |
+|---|---|
+| [`AGENTS.md`](./AGENTS.md) | **Universal standard** for all autonomous AI coding agents |
+| [`CLAUDE.md`](./CLAUDE.md) | Claude Code CLI & Anthropic models |
+| [`.cursorrules`](./.cursorrules) | Cursor IDE Composer & Agent |
+| [`.github/copilot-instructions.md`](./.github/copilot-instructions.md) | GitHub Copilot Workspace & CLI |
+| [`skills/memory-bridge/SKILL.md`](./skills/memory-bridge/SKILL.md) | Reusable Native Skill definition |
+| [`.agents/skills/memory-bridge/SKILL.md`](./.agents/skills/memory-bridge/SKILL.md) | In-repo Native Skill standard path |
+
+If your AI tool supports skills or agent instructions, it will automatically detect and respect these files.
+
 ## Visual local dashboard (with editing)
 
 Start the local UI:
