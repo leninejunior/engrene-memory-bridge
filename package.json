@@ -1,7 +1,7 @@
 {
-  "name": "memory-bridge",
-  "version": "0.1.0",
-  "description": "Local-first interoperable memory bridge for AI tools and CLIs",
+  "name": "engrene-memory-bridge",
+  "version": "0.2.0",
+  "description": "An open memory protocol for AI coding agents. One project. One memory. Any agent.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -21,6 +21,7 @@
   ],
   "type": "module",
   "bin": {
+    "engrene-memory-bridge": "dist/src/cli/bin.js",
     "memory-bridge": "dist/src/cli/bin.js",
     "mb-aider": "dist/src/wrappers/mb-aider.js",
     "mb-antigravity": "dist/src/wrappers/mb-antigravity.js",
@@ -30,9 +31,11 @@
     "mb-cursor": "dist/src/wrappers/mb-cursor.js",
     "mb-dyad": "dist/src/wrappers/mb-dyad.js",
     "mb-gemini": "dist/src/wrappers/mb-gemini.js",
+    "mb-hermes": "dist/src/wrappers/mb-hermes.js",
     "mb-kilo": "dist/src/wrappers/mb-kilo.js",
     "mb-kiro": "dist/src/wrappers/mb-kiro.js",
     "mb-qoder": "dist/src/wrappers/mb-qoder.js",
+    "mb-qwen": "dist/src/wrappers/mb-qwen.js",
     "mb-replit": "dist/src/wrappers/mb-replit.js",
     "mb-trae": "dist/src/wrappers/mb-trae.js",
     "mb-vscode": "dist/src/wrappers/mb-vscode.js"
@@ -40,19 +43,23 @@
   "files": [
     "dist/src",
     "README.md",
+    "ARCHITECTURE.md",
+    "ROADMAP.md",
     "INTEGRATIONS.md",
     "SPEC.md",
     "CONTRIBUTING.md",
     "RELEASE_CHECKLIST.md",
+    "skills",
     "LICENSE"
   ],
   "scripts": {
-    "build": "npm run clean && tsc -p tsconfig.json && mkdir -p dist/src/ui && cp -R src/ui/public dist/src/ui/public",
+    "build": "npm run clean && tsc -p tsconfig.json && mkdir -p dist/src/ui && cp -R src/ui/public dist/src/ui/public && chmod +x dist/src/cli/bin.js dist/src/wrappers/*.js",
     "clean": "rm -rf dist",
     "test": "npm run build && node --test dist/tests/unit/*.test.js dist/tests/integration/*.test.js",
     "test:unit": "npm run build && node --test dist/tests/unit/*.test.js",
     "test:integration": "npm run build && node --test dist/tests/integration/*.test.js",
     "smoke:local": "npm run build && node dist/tests/integration/smoke-real-workspace.smoke.js",
+    "prepare": "npm run build",
     "ui": "npm run build && node dist/src/cli/bin.js ui"
   },
   "devDependencies": {

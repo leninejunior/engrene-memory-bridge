@@ -71,7 +71,8 @@ test("ui supports editing project context and writing events", async (t) => {
     assert.match(handoffOut.markdown, /Objective/);
 
     const state = await requestJson(`${server.url}/api/state`);
-    assert.equal(state.snapshot.objective, "Implement UI editing");
+    assert.equal(state.snapshot.objective, "Ship UI editing");
+    assert.equal(state.snapshot.currentTask, "Implement UI editing");
     assert.equal(state.decisions.length >= 1, true);
     assert.equal(state.sessions.length >= 1, true);
 

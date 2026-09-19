@@ -1,30 +1,68 @@
+import { filterActiveDecisions } from "./context.js";
 import type { BridgeConfig, SearchHit } from "../types/events.js";
 import { readDecisionEvents, readHandoff, readProjectContext, readSessionEvents } from "./store.js";
-import { semanticEnabled, semanticSearch, upsertSemanticDoc } from "./vector.js";
+import {
+  deleteSemanticDocs,
+  ftsSearch,
+  getSemanticDocCount,
+  isSqliteSupported,
+  semanticEnabled,
+  semanticSearch,
+  upsertSemanticDoc
+} from "./vector.js";
 
-export type SearchMode = "text" | "semantic";
+export type SearchMode = "text" | "semantic" | "hybrid";
 
 function normalize(input: string): string {
   return input.toLowerCase();
 }
 
-function textScore(query: string, content: string): number {
+function tokenize(input: string): string[] {
+  return input
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, " ")
+    .split(/\s+/)
+    .filter((token) => token.length > 1);
+}
+
+function bm25Score(query: string, content: string): number {
   const q = normalize(query).trim();
   if (!q) {
     return 0;
   }
   const c = normalize(content);
-  let index = 0;
-  let count = 0;
-  while (true) {
-    const found = c.indexOf(q, index);
-    if (found < 0) {
-      break;
-    }
-    count += 1;
-    index = found + q.length;
+  let score = 0;
+
+  // Exact phrase match boost
+  if (c.includes(q)) {
+    score += 5.0;
   }
-  return count;
+
+  const queryTokens = tokenize(query);
+  const contentTokens = tokenize(content);
+  if (queryTokens.length === 0 || contentTokens.length === 0) {
+    return score;
+  }
+
+  const tokenFreq = new Map<string, number>();
+  for (const token of contentTokens) {
+    tokenFreq.set(token, (tokenFreq.get(token) ?? 0) + 1);
+  }
+
+  const docLength = contentTokens.length;
+  const avgDocLength = 60;
+  const k1 = 1.2;
+  const b = 0.75;
+
+  for (const token of queryTokens) {
+    const tf = tokenFreq.get(token) ?? 0;
+    if (tf > 0) {
+      const termScore = (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * (docLength / avgDocLength)));
+      score += termScore;
+    }
+  }
+
+  return score;
 }
 
 function snippet(content: string, query: string): string {
@@ -44,8 +82,8 @@ export async function indexSemanticFromState(workspace: string, config: BridgeCo
   }
 
   const [sessionsResult, decisionsResult, handoffResult, projectContext] = await Promise.all([
-    readSessionEvents(workspace, config, 300),
-    readDecisionEvents(workspace, config, 200),
+    readSessionEvents(workspace, config, 1000),
+    readDecisionEvents(workspace, config, 10000),
     readHandoff(workspace, config),
     readProjectContext(workspace)
   ]);
@@ -60,7 +98,8 @@ export async function indexSemanticFromState(workspace: string, config: BridgeCo
     });
   }
 
-  for (const event of decisionsResult.events) {
+  const { active: activeDecisions } = filterActiveDecisions(decisionsResult.events);
+  for (const event of activeDecisions) {
     await upsertSemanticDoc(workspace, config, {
       id: `decision:${event.id}`,
       source: "decisions",
@@ -68,6 +107,15 @@ export async function indexSemanticFromState(workspace: string, config: BridgeCo
       ref: `decision:${event.id}`,
       text: [event.title, event.context, event.decision, event.impact, ...event.supersedes].join("\n")
     });
+  }
+
+  // Purge any superseded decision IDs directly from all decision references in history
+  const supersededIds = Array.from(
+    new Set(decisionsResult.events.flatMap((d) => d.supersedes || []))
+  ).map((id) => `decision:${id}`);
+
+  if (supersededIds.length > 0) {
+    await deleteSemanticDocs(workspace, config, supersededIds);
   }
 
   if (handoffResult.text) {
@@ -103,7 +151,7 @@ export async function searchMemory(args: {
 
   const [sessionsResult, decisionsResult, handoffResult, projectContext] = await Promise.all([
     readSessionEvents(workspace, config, 300),
-    readDecisionEvents(workspace, config, 200),
+    readDecisionEvents(workspace, config, 500),
     readHandoff(workspace, config),
     readProjectContext(workspace)
   ]);
@@ -114,7 +162,7 @@ export async function searchMemory(args: {
 
   for (const event of sessionsResult.events) {
     const content = [event.intent, event.summary, ...event.actions, ...event.artifacts, ...event.tags].join("\n");
-    const score = textScore(query, content);
+    const score = bm25Score(query, content);
     if (score > 0) {
       textHits.push({
         source: "sessions",
@@ -126,9 +174,10 @@ export async function searchMemory(args: {
     }
   }
 
-  for (const event of decisionsResult.events) {
+  const { active: activeDecisions } = filterActiveDecisions(decisionsResult.events);
+  for (const event of activeDecisions) {
     const content = [event.title, event.context, event.decision, event.impact, ...event.supersedes].join("\n");
-    const score = textScore(query, content);
+    const score = bm25Score(query, content);
     if (score > 0) {
       textHits.push({
         source: "decisions",
@@ -140,8 +189,17 @@ export async function searchMemory(args: {
     }
   }
 
+  // Always purge superseded decision IDs from SQLite vector & FTS5 store if referenced in history
+  const supersededIds = Array.from(
+    new Set(decisionsResult.events.flatMap((d) => d.supersedes || []))
+  ).map((id) => `decision:${id}`);
+
+  if (supersededIds.length > 0 && semanticEnabled(config)) {
+    await deleteSemanticDocs(workspace, config, supersededIds);
+  }
+
   if (handoffResult.text) {
-    const score = textScore(query, handoffResult.text);
+    const score = bm25Score(query, handoffResult.text);
     if (score > 0) {
       textHits.push({
         source: "handoff",
@@ -153,7 +211,7 @@ export async function searchMemory(args: {
   }
 
   if (projectContext) {
-    const score = textScore(query, projectContext);
+    const score = bm25Score(query, projectContext);
     if (score > 0) {
       textHits.push({
         source: "project-context",
@@ -165,21 +223,93 @@ export async function searchMemory(args: {
   }
 
   const sortedTextHits = textHits.sort((a, b) => b.score - a.score).slice(0, Math.max(1, limit));
+  let lexicalHits = sortedTextHits;
+  if (semanticEnabled(config) && (await isSqliteSupported())) {
+    const ftsHits = await ftsSearch(workspace, config, query, limit);
+    if (ftsHits.length > 0) {
+      lexicalHits = ftsHits;
+    }
+  }
 
   if (mode === "text") {
-    return { hits: sortedTextHits, warnings };
+    return { hits: lexicalHits, warnings };
   }
 
   if (!semanticEnabled(config)) {
-    warnings.push("Semantic search requested, but semanticSearch.enabled=false. Falling back to text search.");
-    return { hits: sortedTextHits, warnings };
+    warnings.push("Semantic/hybrid search requested, but semanticSearch.enabled=false. Falling back to text search.");
+    return { hits: lexicalHits, warnings };
   }
 
-  await indexSemanticFromState(workspace, config);
-  const semanticHits = await semanticSearch(workspace, config, query, limit);
-  if (semanticHits.length === 0) {
-    warnings.push("Semantic index is empty. Returning text search hits.");
-    return { hits: sortedTextHits, warnings };
+  const docCount = await getSemanticDocCount(workspace, config);
+  if (docCount === 0) {
+    await indexSemanticFromState(workspace, config);
   }
-  return { hits: semanticHits, warnings };
+
+  const semanticHits = await semanticSearch(workspace, config, query, limit);
+
+  if (mode === "semantic") {
+    if (semanticHits.length === 0) {
+      warnings.push("Semantic index is empty. Returning text search hits.");
+      return { hits: lexicalHits, warnings };
+    }
+    return { hits: semanticHits, warnings };
+  }
+
+  // Hybrid Mode: Reciprocal Rank Fusion (RRF) combining SQLite FTS5 BM25 (or in-memory fallback) + Vector Embeddings + Recency
+  const hybridHits = rrfFusion(lexicalHits, semanticHits, 60, limit);
+  return { hits: hybridHits.length > 0 ? hybridHits : lexicalHits, warnings };
+}
+
+export function rrfFusion(
+  textHits: SearchHit[],
+  semanticHits: SearchHit[],
+  k = 60,
+  limit = 10
+): SearchHit[] {
+  const scoreMap = new Map<string, { hit: SearchHit; rrfScore: number }>();
+
+  textHits.forEach((hit, idx) => {
+    const key = hit.ref || hit.snippet;
+    const rank = idx + 1;
+    const item = scoreMap.get(key) || { hit: { ...hit }, rrfScore: 0 };
+    item.rrfScore += 1 / (k + rank);
+    item.hit.text_score = hit.score;
+    scoreMap.set(key, item);
+  });
+
+  semanticHits.forEach((hit, idx) => {
+    const key = hit.ref || hit.snippet;
+    const rank = idx + 1;
+    const item = scoreMap.get(key) || { hit: { ...hit }, rrfScore: 0 };
+    item.rrfScore += 1 / (k + rank);
+    item.hit.semantic_score = hit.score;
+    if (hit.ts && !item.hit.ts) {
+      item.hit.ts = hit.ts;
+    }
+    scoreMap.set(key, item);
+  });
+
+  const now = Date.now();
+  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
+  return Array.from(scoreMap.values())
+    .map(({ hit, rrfScore }) => {
+      let recencyBoost = 0;
+      if (hit.ts) {
+        const itemTime = new Date(hit.ts).getTime();
+        if (!isNaN(itemTime)) {
+          const age = Math.max(0, now - itemTime);
+          if (age < SEVEN_DAYS_MS) {
+            recencyBoost = (1 - age / SEVEN_DAYS_MS) * 0.005;
+          }
+        }
+      }
+      return {
+        ...hit,
+        score: rrfScore + recencyBoost,
+        recency_score: recencyBoost
+      };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, Math.max(1, limit));
 }

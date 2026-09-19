@@ -1,7 +1,7 @@
 # Memory Bridge Specification
 
 ## Spec Version
-- `1.0.0`
+- `1.1.0`
 
 ## 1. Storage Interface (Primary API)
 
@@ -13,6 +13,11 @@ Required paths:
 - `.memory-bridge/decisions.jsonl`
 - `.memory-bridge/sessions/<yyyy-mm-dd>.jsonl`
 - `.memory-bridge/handoff.md`
+
+Optional and indexing acceleration paths:
+- `.memory-bridge/observations/<yyyy-mm-dd>-session-<id>.jsonl` (short-term captured observations)
+- `.memory-bridge/vector.sqlite` (SQLite FTS5 + dense vector embeddings)
+- `.memory-bridge/.lock` (atomic multi-process writer lock)
 
 ## 2. Event Contracts
 
@@ -28,6 +33,10 @@ Fields (required):
 - `summary` (string)
 - `tags` (string[])
 
+Optional fields:
+- `taskId` (string, Orca/subagent task identifier)
+- `parentTaskId` (string, parent task identifier)
+
 ### 2.2 `decision_event`
 Fields (required):
 - `id` (string)
@@ -37,6 +46,15 @@ Fields (required):
 - `decision` (string)
 - `impact` (string)
 - `supersedes` (string[])
+
+### 2.3 `observation_event`
+Fields (required):
+- `id` (string)
+- `ts` (ISO-8601)
+- `sessionId` (string)
+- `tool` (string)
+- `type` ("session_start" | "user_prompt" | "tool_call" | "tool_result" | "session_end")
+- `payload` (Record<string, unknown>)
 
 ## 3. Resume Contract
 
@@ -51,8 +69,9 @@ If some files are missing, command must not fail hard; return partial context + 
 
 ## 4. Security
 
-### 4.1 Redaction
+### 4.1 Redaction & Path Exclusions
 Before persistence, sensitive patterns must be redacted (API keys, tokens, passwords, private keys, `.env`-style sensitive assignments).
+Observations must filter out paths matching sensitive glob patterns (`.env*`, `node_modules/**`, `secrets/**`, `*.pem`, `*.key`, `id_rsa*`).
 
 ### 4.2 Optional encryption
 When `config.encryption.enabled=true`, payloads may be persisted as encrypted envelopes:
@@ -69,31 +88,35 @@ When `config.encryption.enabled=true`, payloads may be persisted as encrypted en
 }
 ```
 
-Kinds:
-- `session_event`
-- `decision_event`
-- `handoff`
-
 ## 5. Concurrency and Atomicity
 
 Write operations must use:
-- lockfile (`.memory-bridge/.lock`)
-- atomic replace (temp file + rename)
+- lockfile (`.memory-bridge/.lock`) with stale lock detection (>10m)
+- atomic append and atomic replace (temp file + rename)
 
-Goal: avoid JSONL corruption under concurrent `log` calls.
+Goal: avoid JSONL corruption under concurrent `log` and `observe` calls across parallel subagents.
 
-## 6. Search
+## 6. Search & Retrieval
 
 Command: `search <query>`
 
 Modes:
-- `text` (default)
-- `semantic` (optional, requires `semanticSearch.enabled=true`)
+- `text`: SQLite FTS5 full-text search with BM25 ranking (fallback to token scoring if SQLite unavailable)
+- `semantic`: Cosine similarity over 256-dimensional dense vector embeddings (`embedLocalDense` or external provider: `ollama`, `openai-compatible`)
+- `hybrid`: Reciprocal Rank Fusion (RRF) with constant k=60 combining FTS5 lexical rank, dense vector similarity, and recency boost
 
-Local semantic index:
-- `.memory-bridge/vector.sqlite`
+## 7. Model Context Protocol (MCP)
 
-## 7. CLI Compatibility
+Command: `mcp`
+
+Exposes an stdio JSON-RPC 2.0 MCP server with tools:
+- `memory_resume`
+- `memory_search`
+- `memory_log`
+- `memory_decision`
+- `memory_handoff`
+
+## 8. CLI Compatibility
 
 All public commands must support `--json`.
 
@@ -103,16 +126,24 @@ Core commands:
 - `decision add`
 - `handoff build`
 - `resume --for <tool>`
+- `lint`
+- `consolidate`
 - `doctor`
+- `stats`
+- `observe`
+- `mcp`
 - `search <query>`
+- `hook print <target>`
 - `ui`
 
-## 8. Wrapper Contract
+## 9. Wrapper Contract
 
 Official wrappers:
 - `mb-codex`
 - `mb-claude`
 - `mb-gemini`
+- `mb-hermes`
+- `mb-qwen`
 - `mb-kiro`
 - `mb-kilo`
 - `mb-copilot`
@@ -131,3 +162,4 @@ Wrapper naming pattern:
 Behavior:
 - `pre`: run `resume --for <tool>`
 - `post`: run `log` then `handoff build`
+

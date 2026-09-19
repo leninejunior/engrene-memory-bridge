@@ -29,6 +29,8 @@ This contract is specifically designed for cross-tool continuity:
 - Codex: `mb-codex`
 - Claude: `mb-claude`
 - Gemini: `mb-gemini`
+- Hermes Agent: `mb-hermes`
+- Qwen Code: `mb-qwen`
 - Kiro: `mb-kiro`
 - Kilo: `mb-kilo`
 - Copilot CLI: `mb-copilot`
@@ -38,6 +40,8 @@ This contract is specifically designed for cross-tool continuity:
 - Dyad: `mb-dyad`
 - Replit: `mb-replit`
 - Qoder: `mb-qoder`
+- Cursor: `mb-cursor`
+- VS Code: `mb-vscode`
 
 ### Common tools with contract-based support
 
@@ -116,7 +120,46 @@ Map these commands:
   - `memory-bridge log --tool <tool> ... --json`
   - `memory-bridge handoff build --json`
 
-## Option D: Windows scripts (PowerShell/cmd)
+## Option D: Native Skills & AI Agent Guidelines
+
+For developers using AI agents (Antigravity, Claude Code, Cursor, GitHub Copilot, Codex, Windsurf), `engrene-memory-bridge` includes first-class guidelines and native skills pre-configured in the repository:
+
+### 1. Ready-to-Use Agent Instructions
+- **Universal Agent Standard**: [`AGENTS.md`](./AGENTS.md)
+- **Hermes Agent (Nous Research)**: [`HERMES.md`](./HERMES.md)
+- **Claude Code CLI**: [`CLAUDE.md`](./CLAUDE.md)
+- **Cursor IDE / Composer**: [`.cursorrules`](./.cursorrules)
+- **GitHub Copilot**: [`.github/copilot-instructions.md`](./.github/copilot-instructions.md)
+
+### 2. Native Skill Package
+The repository provides a declarative agent skill:
+- In-repo standard path: `.agents/skills/memory-bridge/SKILL.md`
+- Source template path: `skills/memory-bridge/SKILL.md`
+
+#### Hermes Agent Setup (Automated):
+```bash
+# Automatically configure ~/.hermes/config.yaml MCP server and install Hermes skill:
+memory-bridge install hermes
+```
+
+> **Why Memory Bridge over Hermes Hindsight?** While Hermes Agent provides an optional plugin called Hindsight, it requires heavy Python dependencies (`transformers`, `sentence-transformers`), active daemons, and remains siloed inside Hermes. Memory Bridge connects Hermes with Claude, Cursor, Codex, and Gemini with zero daemons and zero external dependencies. See full comparison in [`HERMES.md`](./HERMES.md).
+
+#### Antigravity Setup:
+```bash
+# View setup instructions:
+memory-bridge hook print antigravity
+
+# Or install automatically:
+memory-bridge install antigravity
+```
+
+Once installed or detected, any AI agent will automatically:
+1. Run `memory-bridge resume` before executing tasks.
+2. Record `memory-bridge decision add` whenever architectural choices are made.
+3. Run `npm test` and `memory-bridge lint` to verify stability.
+4. Run `memory-bridge log` and `memory-bridge handoff build` upon task completion.
+
+## Option E: Windows scripts (PowerShell/cmd)
 
 If your team uses Windows terminals, use the helper scripts from `scripts/windows`:
 
@@ -155,6 +198,29 @@ scripts\windows\mb-pre.cmd -Tool gemini
 scripts\windows\mb-post.cmd -Tool gemini -Intent "Implement report export" -Summary "CSV endpoint added" -Actions "TODO: pagination" -Artifacts "src/reports.ts" -Tags "reporting,api"
 ```
 
+## Option F: Linux & macOS scripts (Bash/Zsh)
+
+If your team uses Linux or macOS terminal environments, use the helper scripts from `scripts/linux`:
+
+- `scripts/linux/mb.sh` (recommended, runs local build or via `npx`, no global install required)
+- `scripts/linux/mb-pre.sh`
+- `scripts/linux/mb-post.sh`
+
+Quick start:
+
+```bash
+chmod +x scripts/linux/*.sh
+./scripts/linux/mb.sh init
+./scripts/linux/mb.sh resume --for gemini
+```
+
+Bash/Zsh example:
+
+```bash
+./scripts/linux/mb-pre.sh --tool gemini
+./scripts/linux/mb-post.sh --tool gemini --intent "Implement report export" --summary "CSV endpoint added" --actions "TODO: pagination" --artifacts "src/reports.ts" --tags "reporting,api" --task-id "task-rep-01"
+```
+
 ## User prompt template for IDEs
 
 When users want consistent behavior, use this instruction in IDE/system prompt:
@@ -173,6 +239,50 @@ For team-wide consistency, enforce this policy in docs/onboarding:
 2. Never commit `.memory-bridge/*` runtime files.
 3. Always run pre/post contract when changing tools.
 4. Keep `project-context.md` updated with stable constraints.
+
+## Option G: Model Context Protocol (MCP)
+
+`memory-bridge` includes a built-in JSON-RPC 2.0 MCP server (`memory-bridge mcp`) that communicates over stdio. This enables any MCP-compatible agent or client (Claude Desktop, Cursor, Windsurf, Hermes Agent, Zed, etc.) to query and mutate memory directly via tools.
+
+### Configuration (Claude Desktop / Cursor / Windsurf)
+
+Add to your `claude_desktop_config.json` or cursor MCP settings:
+
+```json
+{
+  "mcpServers": {
+    "memory-bridge": {
+      "command": "npx",
+      "args": ["-y", "memory-bridge", "mcp"]
+    }
+  }
+}
+```
+
+Or when running from a checked-out repository:
+
+```json
+{
+  "mcpServers": {
+    "memory-bridge": {
+      "command": "node",
+      "args": ["/absolute/path/to/engrene-memory-bridge/dist/src/cli/bin.js", "mcp"]
+    }
+  }
+}
+```
+
+### Available MCP Tools
+
+| Tool | Purpose |
+|---|---|
+| `memory_resume` | Get current objective, pending tasks, recent decisions, and handoff snapshot |
+| `memory_search` | Hybrid, semantic, or full-text BM25 search across sessions, decisions, and handoff |
+| `memory_log` | Record a session event with intent, summary, actions, and artifacts |
+| `memory_decision` | Record an architectural or technical decision (with supersedes tracking) |
+| `memory_handoff` | Rebuild and fetch the latest markdown handoff for cross-agent transitions |
+
+---
 
 ## Troubleshooting
 

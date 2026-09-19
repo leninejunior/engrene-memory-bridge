@@ -270,21 +270,21 @@ export async function startUiServer(options: UiServerOptions): Promise<UiServerR
         return;
       }
 
-      if (method === "GET" && pathname === "/") {
+      if ((method === "GET" || method === "HEAD") && pathname === "/") {
         const html = await fs.readFile(path.join(staticRoot, "index.html"), "utf8");
-        text(res, 200, html, "text/html; charset=utf-8");
+        text(res, 200, method === "HEAD" ? "" : html, "text/html; charset=utf-8");
         return;
       }
 
-      if (method === "GET" && pathname === "/app.js") {
+      if ((method === "GET" || method === "HEAD") && pathname === "/app.js") {
         const js = await fs.readFile(path.join(staticRoot, "app.js"), "utf8");
-        text(res, 200, js, "text/javascript; charset=utf-8");
+        text(res, 200, method === "HEAD" ? "" : js, "text/javascript; charset=utf-8");
         return;
       }
 
-      if (method === "GET" && pathname === "/styles.css") {
+      if ((method === "GET" || method === "HEAD") && pathname === "/styles.css") {
         const css = await fs.readFile(path.join(staticRoot, "styles.css"), "utf8");
-        text(res, 200, css, "text/css; charset=utf-8");
+        text(res, 200, method === "HEAD" ? "" : css, "text/css; charset=utf-8");
         return;
       }
 

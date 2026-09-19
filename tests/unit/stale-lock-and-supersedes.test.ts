@@ -1,0 +1,245 @@
+import assert from "node:assert/strict";
+import fs from "node:fs/promises";
+import path from "node:path";
+import test from "node:test";
+
+import { filterActiveDecisions } from "../../src/core/context.js";
+import { initWorkspace, loadConfig } from "../../src/core/config.js";
+import { withLock, appendJsonlAtomic, writeJsonFile } from "../../src/core/fs-utils.js";
+import { resolveBridgePaths } from "../../src/core/paths.js";
+import { semanticEnabled } from "../../src/core/vector.js";
+import { makeTempWorkspace } from "../helpers.js";
+import type { DecisionEvent } from "../../src/types/events.js";
+
+test("stale lock recovery breaks lock from dead process or elapsed timeout", async () => {
+  const dir = await makeTempWorkspace("mb-stale-lock-");
+  const lockFile = path.join(dir, ".lock");
+
+  // Create an artificial dead/stale lock with PID 99999999 (guaranteed dead) and ancient timestamp
+  await fs.writeFile(lockFile, "99999999:1000\n", "utf8");
+
+  let acquired = false;
+  await withLock(lockFile, async () => {
+    acquired = true;
+  }, 1000);
+
+  assert.equal(acquired, true);
+});
+
+test("filterActiveDecisions excludes superseded decisions and keeps active ones", () => {
+  const decisions: DecisionEvent[] = [
+    {
+      id: "dec-1",
+      ts: "2026-09-19T10:00:00.000Z",
+      title: "Use Redis",
+      context: "Initial cache idea",
+      decision: "Adopt Redis",
+      impact: "Added redis dep",
+      supersedes: []
+    },
+    {
+      id: "dec-2",
+      ts: "2026-09-19T11:00:00.000Z",
+      title: "Use Local SQLite",
+      context: "Redis is too heavy",
+      decision: "Switch to SQLite and deprecate Redis",
+      impact: "Zero daemons",
+      supersedes: ["dec-1"]
+    },
+    {
+      id: "dec-3",
+      ts: "2026-09-19T12:00:00.000Z",
+      title: "Add FTS5",
+      context: "Search needs speed",
+      decision: "Index documents with FTS5",
+      impact: "Fast search",
+      supersedes: []
+    }
+  ];
+
+  const { active, superseded } = filterActiveDecisions(decisions);
+  assert.equal(superseded.length, 1);
+  assert.equal(superseded[0]?.id, "dec-1");
+  assert.equal(active.length, 2);
+  assert.equal(active[0]?.id, "dec-2");
+  assert.equal(active[1]?.id, "dec-3");
+});
+
+test("appendJsonlAtomic appends without overwriting existing content", async () => {
+  const dir = await makeTempWorkspace("mb-append-");
+  const target = path.join(dir, "events.jsonl");
+  const lock = path.join(dir, ".lock");
+
+  await appendJsonlAtomic(target, JSON.stringify({ item: 1 }), lock);
+  await appendJsonlAtomic(target, JSON.stringify({ item: 2 }), lock);
+
+  const content = await fs.readFile(target, "utf8");
+  const lines = content.trim().split("\n");
+  assert.equal(lines.length, 2);
+  assert.deepEqual(JSON.parse(lines[0]!), { item: 1 });
+  assert.deepEqual(JSON.parse(lines[1]!), { item: 2 });
+});
+
+test("initWorkspace with enableSemanticSearch sets provider to local", async () => {
+  const workspace = await makeTempWorkspace("mb-init-sem-");
+  const { config } = await initWorkspace({
+    workspace,
+    enableSemanticSearch: true
+  });
+
+  assert.equal(config.semanticSearch.enabled, true);
+  assert.equal(config.semanticSearch.provider, "local");
+  assert.equal(semanticEnabled(config), true);
+});
+
+test("loadConfig preserves capture settings from config.json", async () => {
+  const workspace = await makeTempWorkspace("mb-load-cap-");
+  const { config: initialConfig } = await initWorkspace({ workspace });
+  const paths = resolveBridgePaths(workspace);
+
+  const customConfig = {
+    ...initialConfig,
+    capture: {
+      enabled: true,
+      retentionDays: 14,
+      maxSessions: 100,
+      exclude: ["*.secret", ".env.local"]
+    }
+  };
+
+  await writeJsonFile(paths.configFile, customConfig);
+
+  const { config: reloaded } = await loadConfig(workspace);
+  assert.ok(reloaded.capture);
+  assert.equal(reloaded.capture?.enabled, true);
+  assert.equal(reloaded.capture?.retentionDays, 14);
+  assert.equal(reloaded.capture?.maxSessions, 100);
+  assert.deepEqual(reloaded.capture?.exclude, ["*.secret", ".env.local"]);
+});
+
+test("initWorkspace with enableSemanticSearch enables semantic on an existing workspace", async () => {
+  const workspace = await makeTempWorkspace("mb-init-existing-sem-");
+  // 1. Initial init without semantic search
+  const { config: initialConfig } = await initWorkspace({ workspace });
+  assert.equal(initialConfig.semanticSearch.enabled, false);
+  assert.equal(initialConfig.semanticSearch.provider, "disabled");
+
+  // 2. Re-init with enableSemanticSearch: true
+  const { config: updatedConfig } = await initWorkspace({
+    workspace,
+    enableSemanticSearch: true
+  });
+
+  assert.equal(updatedConfig.semanticSearch.enabled, true);
+  assert.equal(updatedConfig.semanticSearch.provider, "local");
+
+  // 3. Confirm reload also yields enabled=true and provider=local
+  const { config: reloaded } = await loadConfig(workspace);
+  assert.equal(reloaded.semanticSearch.enabled, true);
+  assert.equal(reloaded.semanticSearch.provider, "local");
+});
+
+test("loadConfig falls back to DEFAULT_CAPTURE_CONFIG.exclude when exclude is empty or invalid", async () => {
+  const workspace = await makeTempWorkspace("mb-load-cap-empty-");
+  const { config: initialConfig } = await initWorkspace({ workspace });
+  const paths = resolveBridgePaths(workspace);
+
+  const customConfig = {
+    ...initialConfig,
+    capture: {
+      enabled: true,
+      retentionDays: 7,
+      maxSessions: 30,
+      exclude: []
+    }
+  };
+
+  await writeJsonFile(paths.configFile, customConfig);
+
+  const { config: reloaded } = await loadConfig(workspace);
+  assert.ok(reloaded.capture);
+  assert.ok(reloaded.capture?.exclude.includes(".env*"));
+  assert.ok(reloaded.capture?.exclude.includes("node_modules/**"));
+});
+
+test("superseded decision purge removes obsolete decisions from vector DB", async () => {
+  const { appendDecisionEvent } = await import("../../src/core/store.js");
+  const { indexSemanticFromState, searchMemory } = await import("../../src/core/search.js");
+
+  const workspace = await makeTempWorkspace("mb-purge-superseded-");
+  const { config } = await initWorkspace({ workspace, enableSemanticSearch: true });
+
+  const oldDecision: DecisionEvent = {
+    id: "dec-old-redis",
+    ts: "2026-09-19T10:00:00.000Z",
+    title: "Use Redis",
+    context: "Initial cache idea",
+    decision: "Adopt Redis for session store",
+    impact: "Added redis dependency",
+    supersedes: []
+  };
+
+  const newDecision: DecisionEvent = {
+    id: "dec-new-sqlite",
+    ts: "2026-09-19T11:00:00.000Z",
+    title: "Use Local SQLite",
+    context: "Redis is too heavy",
+    decision: "Switch to SQLite for memory storage",
+    impact: "Zero external daemons",
+    supersedes: ["dec-old-redis"]
+  };
+
+  await appendDecisionEvent(workspace, config, oldDecision);
+  await indexSemanticFromState(workspace, config);
+
+  // Confirm old decision is indexed initially
+  let { hits } = await searchMemory({ workspace, config, query: "Redis", mode: "semantic", limit: 5 });
+  assert.ok(hits.some((h) => h.ref === "decision:dec-old-redis"));
+
+  // Append new decision that supersedes old decision
+  await appendDecisionEvent(workspace, config, newDecision);
+
+  // Search again: superseded decision MUST be purged from search hits
+  const result = await searchMemory({ workspace, config, query: "Redis", mode: "semantic", limit: 5 });
+  assert.equal(result.hits.some((h) => h.ref === "decision:dec-old-redis"), false);
+});
+
+test("superseded decision purge via flatMap cleans up stale decisions across history windows", async () => {
+  const { appendDecisionEvent } = await import("../../src/core/store.js");
+  const { indexSemanticFromState, searchMemory } = await import("../../src/core/search.js");
+  const { upsertSemanticDoc } = await import("../../src/core/vector.js");
+
+  const workspace = await makeTempWorkspace("mb-purge-flatmap-");
+  const { config } = await initWorkspace({ workspace, enableSemanticSearch: true });
+
+  // Manually seed old decision into SQLite DB to simulate legacy/stale indexed state
+  await upsertSemanticDoc(workspace, config, {
+    id: "decision:dec-legacy-old",
+    source: "decisions",
+    ts: "2026-09-19T01:00:00.000Z",
+    ref: "decision:dec-legacy-old",
+    text: "Legacy choice: Use MySQL for storage"
+  });
+
+  // Verify legacy decision exists in vector DB
+  let { hits } = await searchMemory({ workspace, config, query: "MySQL", mode: "semantic", limit: 5 });
+  assert.ok(hits.some((h) => h.ref === "decision:dec-legacy-old"));
+
+  // Append new decision that references dec-legacy-old in supersedes
+  const newDecision: DecisionEvent = {
+    id: "dec-modern-sqlite",
+    ts: "2026-09-19T12:00:00.000Z",
+    title: "Migrate to SQLite",
+    context: "MySQL is deprecated",
+    decision: "Use local-first SQLite",
+    impact: "Zero network calls",
+    supersedes: ["dec-legacy-old"]
+  };
+
+  await appendDecisionEvent(workspace, config, newDecision);
+  await indexSemanticFromState(workspace, config);
+
+  // Search again: legacy superseded decision must be purged via flatMap supersedes lookup
+  const result = await searchMemory({ workspace, config, query: "MySQL", mode: "semantic", limit: 5 });
+  assert.equal(result.hits.some((h) => h.ref === "decision:dec-legacy-old"), false);
+});

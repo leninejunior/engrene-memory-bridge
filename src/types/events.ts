@@ -10,6 +10,8 @@ export interface SessionEvent {
   artifacts: StringList;
   summary: string;
   tags: StringList;
+  taskId?: string;
+  parentTaskId?: string;
 }
 
 export interface DecisionEvent {
@@ -22,12 +24,42 @@ export interface DecisionEvent {
   supersedes: StringList;
 }
 
+export type SemanticProvider = "disabled" | "local" | "openai-compatible" | "ollama";
+
+export interface SemanticSearchConfig {
+  enabled: boolean;
+  dimensions: number;
+  provider?: SemanticProvider;
+  model?: string;
+  endpoint?: string;
+  apiKeyEnvVar?: string;
+}
+
+export interface CaptureConfig {
+  enabled: boolean;
+  retentionDays: number;
+  maxSessions: number;
+  exclude: string[];
+}
+
+export type ObservationType = "session_start" | "user_prompt" | "tool_call" | "tool_result" | "session_end";
+
+export interface ObservationEvent {
+  id: string;
+  ts: string;
+  sessionId: string;
+  tool: string;
+  type: ObservationType;
+  payload: Record<string, unknown>;
+}
+
 export interface BridgeConfig {
   schemaVersion: string;
   projectName: string;
   createdAt: string;
   redaction: {
     enabled: boolean;
+    customPatterns?: string[];
   };
   encryption: {
     enabled: boolean;
@@ -35,15 +67,17 @@ export interface BridgeConfig {
     saltBase64: string;
     keyEnvVar: string;
   };
-  semanticSearch: {
-    enabled: boolean;
-    dimensions: number;
-  };
+  semanticSearch: SemanticSearchConfig;
+  capture?: CaptureConfig;
 }
 
 export interface ResumeSnapshot {
   objective: string;
+  projectObjective?: string | undefined;
+  currentTask?: string | undefined;
+  currentFocus?: string | undefined;
   recentDecisions: DecisionEvent[];
+  activeDecisions?: DecisionEvent[] | undefined;
   pending: string[];
   nextSteps: string[];
   warnings: string[];
@@ -55,6 +89,9 @@ export interface SearchHit {
   ts?: string;
   snippet: string;
   ref?: string;
+  text_score?: number;
+  semantic_score?: number;
+  recency_score?: number;
 }
 
 export interface DoctorResult {

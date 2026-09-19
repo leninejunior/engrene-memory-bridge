@@ -4,6 +4,7 @@ export interface BridgePaths {
   workspace: string;
   root: string;
   sessionsDir: string;
+  observationsDir: string;
   configFile: string;
   projectContextFile: string;
   decisionsFile: string;
@@ -18,6 +19,7 @@ export function resolveBridgePaths(workspace: string): BridgePaths {
     workspace,
     root,
     sessionsDir: path.join(root, "sessions"),
+    observationsDir: path.join(root, "observations"),
     configFile: path.join(root, "config.json"),
     projectContextFile: path.join(root, "project-context.md"),
     decisionsFile: path.join(root, "decisions.jsonl"),

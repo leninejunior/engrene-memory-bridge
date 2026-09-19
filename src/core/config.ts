@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import path from "node:path";
 
-import type { BridgeConfig } from "../types/events.js";
+import type { BridgeConfig, SemanticProvider } from "../types/events.js";
 import {
   atomicWriteFile,
   ensureDirSecure,
@@ -13,11 +13,13 @@ import {
 } from "./fs-utils.js";
 import { resolveBridgePaths, type BridgePaths } from "./paths.js";
 
+import { DEFAULT_CAPTURE_CONFIG } from "./capture.js";
+
 export interface InitOptions {
   workspace: string;
-  enableEncryption: boolean;
-  enableSemanticSearch: boolean;
-  disableRedaction: boolean;
+  enableEncryption?: boolean;
+  enableSemanticSearch?: boolean;
+  disableRedaction?: boolean;
   projectName?: string;
 }
 
@@ -54,7 +56,8 @@ export function defaultConfig(projectName: string): BridgeConfig {
     },
     semanticSearch: {
       enabled: false,
-      dimensions: 192
+      provider: "disabled",
+      dimensions: 256
     }
   };
 }
@@ -73,12 +76,14 @@ export async function loadConfig(workspace: string): Promise<ConfigLoadResult> {
     };
   }
 
+  const isSemanticEnabled = parsed.semanticSearch?.enabled ?? false;
   const config: BridgeConfig = {
     schemaVersion: parsed.schemaVersion || "1.0.0",
     projectName: normalizeProjectName(parsed.projectName || path.basename(paths.workspace)),
     createdAt: parsed.createdAt || new Date().toISOString(),
     redaction: {
-      enabled: parsed.redaction?.enabled ?? true
+      enabled: parsed.redaction?.enabled ?? true,
+      ...(Array.isArray(parsed.redaction?.customPatterns) ? { customPatterns: parsed.redaction.customPatterns } : {})
     },
     encryption: {
       enabled: parsed.encryption?.enabled ?? false,
@@ -87,9 +92,25 @@ export async function loadConfig(workspace: string): Promise<ConfigLoadResult> {
       keyEnvVar: parsed.encryption?.keyEnvVar || "MEMORY_BRIDGE_KEY"
     },
     semanticSearch: {
-      enabled: parsed.semanticSearch?.enabled ?? false,
-      dimensions: Math.max(32, parsed.semanticSearch?.dimensions ?? 192)
-    }
+      enabled: isSemanticEnabled,
+      provider: parsed.semanticSearch?.provider ?? (isSemanticEnabled ? "local" : "disabled"),
+      dimensions: Math.max(32, parsed.semanticSearch?.dimensions ?? 256),
+      ...(parsed.semanticSearch?.model ? { model: parsed.semanticSearch.model } : {}),
+      ...(parsed.semanticSearch?.endpoint ? { endpoint: parsed.semanticSearch.endpoint } : {}),
+      ...(parsed.semanticSearch?.apiKeyEnvVar ? { apiKeyEnvVar: parsed.semanticSearch.apiKeyEnvVar } : {})
+    },
+    ...(parsed.capture
+      ? {
+          capture: {
+            enabled: parsed.capture.enabled ?? false,
+            retentionDays: parsed.capture.retentionDays ?? 7,
+            maxSessions: parsed.capture.maxSessions ?? 30,
+            exclude: Array.isArray(parsed.capture.exclude) && parsed.capture.exclude.length > 0
+              ? parsed.capture.exclude
+              : DEFAULT_CAPTURE_CONFIG.exclude
+          }
+        }
+      : {})
   };
 
   return { config, paths, warnings };
@@ -146,19 +167,34 @@ export async function initWorkspace(options: InitOptions): Promise<InitResult> {
   await ensureDirSecure(paths.sessionsDir);
 
   const base = defaultConfig(options.projectName || path.basename(workspace));
-  base.redaction.enabled = !options.disableRedaction;
-  base.encryption.enabled = options.enableEncryption;
-  base.semanticSearch.enabled = options.enableSemanticSearch;
+  base.redaction.enabled = options.disableRedaction !== true;
+  base.encryption.enabled = Boolean(options.enableEncryption);
+
+  if (options.enableSemanticSearch) {
+    base.semanticSearch.enabled = true;
+    base.semanticSearch.provider = "local";
+  }
 
   if (!(await exists(paths.configFile))) {
     await writeJsonFile(paths.configFile, base, paths.lockFile);
     created.push(paths.configFile);
   } else {
     const existing = (await readJsonFile<BridgeConfig>(paths.configFile)) ?? base;
+    const isSemEnabled = options.enableSemanticSearch
+      ? true
+      : (existing.semanticSearch?.enabled ?? base.semanticSearch.enabled);
+    const existingProvider = existing.semanticSearch?.provider;
+    const semProvider: SemanticProvider = options.enableSemanticSearch
+      ? (existingProvider && existingProvider !== "disabled" ? existingProvider : "local")
+      : (existingProvider || (isSemEnabled ? "local" : "disabled"));
+
     const merged: BridgeConfig = {
       ...base,
       ...existing,
-      redaction: { enabled: existing.redaction?.enabled ?? base.redaction.enabled },
+      redaction: {
+        enabled: existing.redaction?.enabled ?? base.redaction.enabled,
+        ...(existing.redaction?.customPatterns ? { customPatterns: existing.redaction.customPatterns } : {})
+      },
       encryption: {
         enabled: existing.encryption?.enabled ?? base.encryption.enabled,
         kdf: "scrypt",
@@ -166,9 +202,14 @@ export async function initWorkspace(options: InitOptions): Promise<InitResult> {
         keyEnvVar: existing.encryption?.keyEnvVar || base.encryption.keyEnvVar
       },
       semanticSearch: {
-        enabled: existing.semanticSearch?.enabled ?? base.semanticSearch.enabled,
-        dimensions: existing.semanticSearch?.dimensions ?? base.semanticSearch.dimensions
-      }
+        enabled: isSemEnabled,
+        provider: semProvider,
+        dimensions: existing.semanticSearch?.dimensions ?? base.semanticSearch.dimensions,
+        ...(existing.semanticSearch?.model ? { model: existing.semanticSearch.model } : {}),
+        ...(existing.semanticSearch?.endpoint ? { endpoint: existing.semanticSearch.endpoint } : {}),
+        ...(existing.semanticSearch?.apiKeyEnvVar ? { apiKeyEnvVar: existing.semanticSearch.apiKeyEnvVar } : {})
+      },
+      ...(existing.capture ? { capture: existing.capture } : {})
     };
     await writeJsonFile(paths.configFile, merged, paths.lockFile);
     updated.push(paths.configFile);
