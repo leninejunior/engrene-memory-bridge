@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { spawn } from "node:child_process";
 import path from "node:path";
 
 import { getBoolFlag, getListFlag, getStringFlag, parseArgs } from "./args.js";
@@ -324,12 +325,27 @@ async function commandSearch(argv: string[], asJson: boolean): Promise<void> {
   printOutput(lines.join("\n"), false);
 }
 
+function openBrowser(url: string): void {
+  try {
+    if (process.platform === "darwin") {
+      spawn("open", [url], { stdio: "ignore", detached: true }).unref();
+    } else if (process.platform === "win32") {
+      spawn("cmd", ["/c", "start", "", url], { stdio: "ignore", detached: true }).unref();
+    } else {
+      spawn("xdg-open", [url], { stdio: "ignore", detached: true }).unref();
+    }
+  } catch {
+    // Ignore browser open errors
+  }
+}
+
 async function commandUi(argv: string[], asJson: boolean): Promise<void> {
   const parsed = parseArgs(argv);
   const workspace = normalizeWorkspace(getStringFlag(parsed, "workspace"));
   const host = getStringFlag(parsed, "host", "127.0.0.1") || "127.0.0.1";
   const port = parseLimit(getStringFlag(parsed, "port"), 8787);
   const readonly = getBoolFlag(parsed, "readonly", false);
+  const noOpen = getBoolFlag(parsed, "no-open", false);
 
   const server = await startUiServer({ workspace, host, port, readonly });
   const payload = {
@@ -346,6 +362,9 @@ async function commandUi(argv: string[], asJson: boolean): Promise<void> {
     printOutput(payload, true);
   } else {
     printOutput(`Memory Bridge UI running at ${server.url}`, false);
+    if (!noOpen) {
+      openBrowser(server.url);
+    }
   }
 
   const shutdown = async () => {
