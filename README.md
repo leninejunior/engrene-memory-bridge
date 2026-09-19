@@ -1,10 +1,24 @@
 # engrene-memory-bridge
 
-![Engrene Logo](./assets/logo/engrene-logo.jpeg)
+<p align="center">
+  <img src="./assets/logo/engrene-logo.jpeg" alt="Engrene Logo" width="160" style="border-radius: 12px;" />
+</p>
 
-Local-first memory bridge for AI workflows.
+<p align="center">
+  <a href="https://www.npmjs.com/package/engrene-memory-bridge"><img src="https://img.shields.io/npm/v/engrene-memory-bridge.svg?style=flat-square&color=blue" alt="npm version" /></a>
+  <a href="https://nodejs.org"><img src="https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg?style=flat-square" alt="Node.js Version" /></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License: MIT" /></a>
+  <img src="https://img.shields.io/badge/runtime%20deps-0-success.svg?style=flat-square" alt="Zero Runtime Dependencies" />
+  <img src="https://img.shields.io/badge/storage-local--first-orange.svg?style=flat-square" alt="Local First" />
+  <img src="https://img.shields.io/badge/MCP-JSON--RPC%202.0-purple.svg?style=flat-square" alt="MCP Compatible" />
+</p>
 
-`engrene-memory-bridge` keeps project memory in simple files (`.memory-bridge/*`) so different tools (IDEs, CLIs, agents) can share the same context without a proprietary plugin.
+<p align="center">
+  <strong>Universal Local-First Memory Adapter for AI Coding Agents</strong><br />
+  Continuous context across Hermes Agent, Claude Code, Cursor, Codex, Gemini CLI, Qwen Code, Antigravity, and Aider.
+</p>
+
+---
 
 ## Main value
 
@@ -197,6 +211,22 @@ Memory Bridge provides zero-setup, first-class instructions so **any AI agent** 
 | [`.agents/skills/memory-bridge/SKILL.md`](./.agents/skills/memory-bridge/SKILL.md) | In-repo Native Skill standard path |
 
 If your AI tool supports skills or agent instructions, it will automatically detect and respect these files.
+
+### 🪽 Hermes Agent (Nous Research) Integration
+
+Memory Bridge provides native, first-class support for **Hermes Agent** via automated setup, stdio MCP tools, and autonomous skills:
+
+```bash
+# 1-Click Automated Setup for Hermes Agent:
+memory-bridge install hermes
+```
+
+This command automatically:
+- 🔌 Configures the `memory-bridge` stdio MCP server in `~/.hermes/config.yaml`.
+- 📦 Installs the Hermes skill package in `~/.hermes/skills/software-development/memory-bridge/`.
+- 📄 Verifies repository guidelines in [`HERMES.md`](./HERMES.md).
+
+Once configured, Hermes Agent autonomously accesses 5 native memory tools (`memory_resume`, `memory_search`, `memory_log`, `memory_decision`, `memory_handoff`) to preserve project continuity across sessions and restarts without manual commands!
 
 ## Visual local dashboard (with editing)
 
