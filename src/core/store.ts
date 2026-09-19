@@ -60,6 +60,20 @@ export async function appendDecisionEvent(
   const payload = encryptJsonIfNeeded(event, "decision_event", config);
   const line = toJsonLine(payload);
   await appendJsonlAtomic(paths.decisionsFile, line, paths.lockFile);
+
+  if (Array.isArray(event.supersedes) && event.supersedes.length > 0) {
+    try {
+      const { deleteSemanticDocs } = await import("./vector.js");
+      await deleteSemanticDocs(
+        workspace,
+        config,
+        event.supersedes.map((id) => `decision:${id}`)
+      );
+    } catch {
+      // Ignore if vector module is unavailable or errors out
+    }
+  }
+
   return { file: paths.decisionsFile, encrypted: config.encryption.enabled };
 }
 

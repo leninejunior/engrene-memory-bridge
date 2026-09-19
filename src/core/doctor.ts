@@ -141,7 +141,7 @@ export async function runDoctor(workspace: string, config: BridgeConfig): Promis
       name: "sqlite-fts5",
       ok: false,
       severity: "warn",
-      message: `SQLite FTS5 engine unavailable: ${err instanceof Error ? err.message : String(err)}`
+      message: `SQLite FTS5 engine unavailable (Node 20 fallback: pure JS BM25 search enabled. Node >= 22.5.0 recommended for native SQLite vector search): ${err instanceof Error ? err.message : String(err)}`
     });
   }
 

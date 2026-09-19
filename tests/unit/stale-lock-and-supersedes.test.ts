@@ -161,3 +161,45 @@ test("loadConfig falls back to DEFAULT_CAPTURE_CONFIG.exclude when exclude is em
   assert.ok(reloaded.capture?.exclude.includes(".env*"));
   assert.ok(reloaded.capture?.exclude.includes("node_modules/**"));
 });
+
+test("superseded decision purge removes obsolete decisions from vector DB", async () => {
+  const { appendDecisionEvent } = await import("../../src/core/store.js");
+  const { indexSemanticFromState, searchMemory } = await import("../../src/core/search.js");
+
+  const workspace = await makeTempWorkspace("mb-purge-superseded-");
+  const { config } = await initWorkspace({ workspace, enableSemanticSearch: true });
+
+  const oldDecision: DecisionEvent = {
+    id: "dec-old-redis",
+    ts: "2026-09-19T10:00:00.000Z",
+    title: "Use Redis",
+    context: "Initial cache idea",
+    decision: "Adopt Redis for session store",
+    impact: "Added redis dependency",
+    supersedes: []
+  };
+
+  const newDecision: DecisionEvent = {
+    id: "dec-new-sqlite",
+    ts: "2026-09-19T11:00:00.000Z",
+    title: "Use Local SQLite",
+    context: "Redis is too heavy",
+    decision: "Switch to SQLite for memory storage",
+    impact: "Zero external daemons",
+    supersedes: ["dec-old-redis"]
+  };
+
+  await appendDecisionEvent(workspace, config, oldDecision);
+  await indexSemanticFromState(workspace, config);
+
+  // Confirm old decision is indexed initially
+  let { hits } = await searchMemory({ workspace, config, query: "Redis", mode: "semantic", limit: 5 });
+  assert.ok(hits.some((h) => h.ref === "decision:dec-old-redis"));
+
+  // Append new decision that supersedes old decision
+  await appendDecisionEvent(workspace, config, newDecision);
+
+  // Search again: superseded decision MUST be purged from search hits
+  const result = await searchMemory({ workspace, config, query: "Redis", mode: "semantic", limit: 5 });
+  assert.equal(result.hits.some((h) => h.ref === "decision:dec-old-redis"), false);
+});

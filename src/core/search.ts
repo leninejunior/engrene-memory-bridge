@@ -110,7 +110,7 @@ export async function indexSemanticFromState(workspace: string, config: BridgeCo
   }
 
   // Purge any superseded decisions from SQLite vector and FTS5 tables
-  const supersededIds = Array.from(supersededDecisions.keys()).map((id) => `decision:${id}`);
+  const supersededIds = supersededDecisions.map((d) => `decision:${d.id}`);
   if (supersededIds.length > 0) {
     await deleteSemanticDocs(workspace, config, supersededIds);
   }
@@ -171,7 +171,7 @@ export async function searchMemory(args: {
     }
   }
 
-  const { active: activeDecisions } = filterActiveDecisions(decisionsResult.events);
+  const { active: activeDecisions, superseded: supersededDecisions } = filterActiveDecisions(decisionsResult.events);
   for (const event of activeDecisions) {
     const content = [event.title, event.context, event.decision, event.impact, ...event.supersedes].join("\n");
     const score = bm25Score(query, content);
@@ -184,6 +184,12 @@ export async function searchMemory(args: {
         snippet: snippet(content, query)
       });
     }
+  }
+
+  // Always purge superseded decision IDs from SQLite vector & FTS5 store if present
+  if (supersededDecisions.length > 0 && semanticEnabled(config)) {
+    const supersededIds = supersededDecisions.map((d) => `decision:${d.id}`);
+    await deleteSemanticDocs(workspace, config, supersededIds);
   }
 
   if (handoffResult.text) {
