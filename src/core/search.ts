@@ -1,6 +1,6 @@
 import type { BridgeConfig, SearchHit } from "../types/events.js";
 import { readDecisionEvents, readHandoff, readProjectContext, readSessionEvents } from "./store.js";
-import { semanticEnabled, semanticSearch, upsertSemanticDoc } from "./vector.js";
+import { ftsSearch, isSqliteSupported, semanticEnabled, semanticSearch, upsertSemanticDoc } from "./vector.js";
 
 export type SearchMode = "text" | "semantic" | "hybrid";
 
@@ -194,30 +194,37 @@ export async function searchMemory(args: {
   }
 
   const sortedTextHits = textHits.sort((a, b) => b.score - a.score).slice(0, Math.max(1, limit));
+  let lexicalHits = sortedTextHits;
+  if (semanticEnabled(config) && (await isSqliteSupported())) {
+    await indexSemanticFromState(workspace, config);
+    const ftsHits = await ftsSearch(workspace, config, query, limit);
+    if (ftsHits.length > 0) {
+      lexicalHits = ftsHits;
+    }
+  }
 
   if (mode === "text") {
-    return { hits: sortedTextHits, warnings };
+    return { hits: lexicalHits, warnings };
   }
 
   if (!semanticEnabled(config)) {
     warnings.push("Semantic/hybrid search requested, but semanticSearch.enabled=false. Falling back to text search.");
-    return { hits: sortedTextHits, warnings };
+    return { hits: lexicalHits, warnings };
   }
 
-  await indexSemanticFromState(workspace, config);
   const semanticHits = await semanticSearch(workspace, config, query, limit);
 
   if (mode === "semantic") {
     if (semanticHits.length === 0) {
       warnings.push("Semantic index is empty. Returning text search hits.");
-      return { hits: sortedTextHits, warnings };
+      return { hits: lexicalHits, warnings };
     }
     return { hits: semanticHits, warnings };
   }
 
-  // Hybrid Mode: Reciprocal Rank Fusion (RRF) combining Text (BM25) + Real Semantic Vectors + Recency
-  const hybridHits = rrfFusion(sortedTextHits, semanticHits, 60, limit);
-  return { hits: hybridHits.length > 0 ? hybridHits : sortedTextHits, warnings };
+  // Hybrid Mode: Reciprocal Rank Fusion (RRF) combining SQLite FTS5 BM25 (or in-memory fallback) + Vector Embeddings + Recency
+  const hybridHits = rrfFusion(lexicalHits, semanticHits, 60, limit);
+  return { hits: hybridHits.length > 0 ? hybridHits : lexicalHits, warnings };
 }
 
 export function rrfFusion(

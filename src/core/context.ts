@@ -153,8 +153,8 @@ export async function buildContextSnapshot(
   );
 
   const objective =
-    latestSession?.intent ||
     projectObjective ||
+    latestSession?.intent ||
     rawProjectObjective ||
     "No explicit objective yet. Add one in project-context.md or log an intent.";
 

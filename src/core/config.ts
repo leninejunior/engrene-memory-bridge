@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import path from "node:path";
 
-import type { BridgeConfig } from "../types/events.js";
+import type { BridgeConfig, SemanticProvider } from "../types/events.js";
 import {
   atomicWriteFile,
   ensureDirSecure,
@@ -162,10 +162,14 @@ export async function initWorkspace(options: InitOptions): Promise<InitResult> {
     created.push(paths.configFile);
   } else {
     const existing = (await readJsonFile<BridgeConfig>(paths.configFile)) ?? base;
+    const existingProvider = (existing.semanticSearch?.provider || base.semanticSearch.provider) as SemanticProvider;
     const merged: BridgeConfig = {
       ...base,
       ...existing,
-      redaction: { enabled: existing.redaction?.enabled ?? base.redaction.enabled },
+      redaction: {
+        enabled: existing.redaction?.enabled ?? base.redaction.enabled,
+        ...(existing.redaction?.customPatterns ? { customPatterns: existing.redaction.customPatterns } : {})
+      },
       encryption: {
         enabled: existing.encryption?.enabled ?? base.encryption.enabled,
         kdf: "scrypt",
@@ -174,8 +178,13 @@ export async function initWorkspace(options: InitOptions): Promise<InitResult> {
       },
       semanticSearch: {
         enabled: existing.semanticSearch?.enabled ?? base.semanticSearch.enabled,
-        dimensions: existing.semanticSearch?.dimensions ?? base.semanticSearch.dimensions
-      }
+        provider: existingProvider,
+        dimensions: existing.semanticSearch?.dimensions ?? base.semanticSearch.dimensions,
+        ...(existing.semanticSearch?.model ? { model: existing.semanticSearch.model } : {}),
+        ...(existing.semanticSearch?.endpoint ? { endpoint: existing.semanticSearch.endpoint } : {}),
+        ...(existing.semanticSearch?.apiKeyEnvVar ? { apiKeyEnvVar: existing.semanticSearch.apiKeyEnvVar } : {})
+      },
+      ...(existing.capture ? { capture: existing.capture } : {})
     };
     await writeJsonFile(paths.configFile, merged, paths.lockFile);
     updated.push(paths.configFile);

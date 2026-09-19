@@ -2,7 +2,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 import type { BridgeConfig, DecisionEvent, ObservationEvent, SessionEvent } from "../types/events.js";
-import { listObservationFiles, readObservations } from "./capture.js";
+import { currentGitBranch } from "./git.js";
+import { readObservationsWithFiles } from "./capture.js";
 import { buildContextSnapshot, renderHandoffMarkdown } from "./context.js";
 import { appendSessionEvent, readDecisionEvents, saveHandoff } from "./store.js";
 import { semanticEnabled, upsertSemanticDoc } from "./vector.js";
@@ -36,9 +37,10 @@ export async function runConsolidation(
   // 1. Synthesize pending observations from observations/
   let consolidatedSessionsCount = 0;
   let observationsProcessedCount = 0;
+  const allDetectedRisks: string[] = [];
 
   try {
-    const rawEvents = await readObservations(normalized, 50);
+    const { events: rawEvents, processedFiles } = await readObservationsWithFiles(normalized, 50);
     if (rawEvents.length > 0) {
       observationsProcessedCount = rawEvents.length;
 
@@ -78,7 +80,9 @@ export async function runConsolidation(
           } else if (obs.type === "tool_result") {
             const resultStr = JSON.stringify(obs.payload || "");
             if (/error|fail|exception|crash/i.test(resultStr)) {
-              detectedRisks.push(`Potential failure in session ${sessionId}`);
+              const riskMsg = `Potential failure in session ${sessionId}`;
+              detectedRisks.push(riskMsg);
+              allDetectedRisks.push(riskMsg);
             }
           }
         }
@@ -90,7 +94,7 @@ export async function runConsolidation(
           ts: latestTs,
           tool,
           workspace: normalized,
-          branch: "main",
+          branch: currentGitBranch(normalized),
           intent,
           actions: distinctActions.length > 0 ? distinctActions : ["completed observation tasks"],
           artifacts: distinctArtifacts,
@@ -102,9 +106,8 @@ export async function runConsolidation(
         consolidatedSessionsCount += 1;
       }
 
-      // Cleanup processed observation files
-      const files = await listObservationFiles(normalized);
-      for (const file of files) {
+      // Cleanup ONLY processed observation files to prevent data loss
+      for (const file of processedFiles) {
         try {
           await fs.unlink(file);
         } catch {
@@ -150,7 +153,8 @@ export async function runConsolidation(
     recentDecisions: activeDecisionsList.slice(-5),
     pending: context.snapshot.pending,
     nextSteps: context.snapshot.nextSteps,
-    recentArtifacts
+    recentArtifacts,
+    risks: Array.from(new Set(allDetectedRisks))
   });
 
   await saveHandoff(normalized, config, markdown);

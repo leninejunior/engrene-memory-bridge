@@ -52,25 +52,34 @@ export function isPathExcluded(filePath: string, excludePatterns: string[]): boo
   return false;
 }
 
+function sanitizeValueRecursive(val: unknown, excludePatterns: string[]): unknown {
+  if (typeof val === "string") {
+    return isPathExcluded(val, excludePatterns) ? "[EXCLUDED_PATH]" : val;
+  }
+  if (Array.isArray(val)) {
+    return val.map((item) => sanitizeValueRecursive(item, excludePatterns));
+  }
+  if (val && typeof val === "object" && val !== null) {
+    const obj = val as Record<string, unknown>;
+    const sanitizedObj: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(obj)) {
+      if (isPathExcluded(k, excludePatterns)) {
+        sanitizedObj[k] = "[EXCLUDED_KEY]";
+      } else {
+        sanitizedObj[k] = sanitizeValueRecursive(v, excludePatterns);
+      }
+    }
+    return sanitizedObj;
+  }
+  return val;
+}
+
 export function sanitizeObservationPayload(
   payload: Record<string, unknown>,
   config: BridgeConfig
 ): Record<string, unknown> {
   const excludePatterns = config.capture?.exclude ?? DEFAULT_CAPTURE_CONFIG.exclude;
-  const sanitized: Record<string, unknown> = {};
-
-  for (const [key, value] of Object.entries(payload)) {
-    // Check if key or value references an excluded sensitive path
-    if (typeof value === "string" && isPathExcluded(value, excludePatterns)) {
-      sanitized[key] = "[EXCLUDED_PATH]";
-      continue;
-    }
-    if (isPathExcluded(key, excludePatterns)) {
-      sanitized[key] = "[EXCLUDED_KEY]";
-      continue;
-    }
-    sanitized[key] = value;
-  }
+  const sanitized = sanitizeValueRecursive(payload, excludePatterns) as Record<string, unknown>;
 
   return config.redaction.enabled
     ? (redactUnknown(sanitized, config.redaction.customPatterns) as Record<string, unknown>)
@@ -168,10 +177,24 @@ export async function readObservations(
   workspace: string,
   maxFiles = 10
 ): Promise<ObservationEvent[]> {
+  const { events } = await readObservationsWithFiles(workspace, maxFiles);
+  return events;
+}
+
+export interface ReadObservationsResult {
+  events: ObservationEvent[];
+  processedFiles: string[];
+}
+
+export async function readObservationsWithFiles(
+  workspace: string,
+  maxFiles = 10
+): Promise<ReadObservationsResult> {
   const files = await listObservationFiles(workspace);
   const events: ObservationEvent[] = [];
+  const processedFiles = files.slice(-maxFiles);
 
-  for (const file of files.slice(-maxFiles)) {
+  for (const file of processedFiles) {
     const { records } = await readJsonl(file);
     for (const record of records) {
       if (
@@ -185,5 +208,5 @@ export async function readObservations(
     }
   }
 
-  return events;
+  return { events, processedFiles };
 }

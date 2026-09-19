@@ -235,16 +235,16 @@ export async function generateEmbedding(text: string, config: BridgeConfig): Pro
   const dimensions = config.semanticSearch.dimensions || 256;
   const provider = config.semanticSearch.provider || "local";
 
-  if (provider === "openai-compatible" || provider === "ollama") {
+  if (provider === "ollama") {
     const endpoint = config.semanticSearch.endpoint || "http://localhost:11434/api/embeddings";
     const model = config.semanticSearch.model || "all-minilm";
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model, prompt: text, input: text }),
+        body: JSON.stringify({ model, prompt: text }),
         signal: controller.signal
       });
       clearTimeout(timeoutId);
@@ -258,7 +258,42 @@ export async function generateEmbedding(text: string, config: BridgeConfig): Pro
         }
       }
     } catch {
-      // Fallback to local dense embedding on timeout or connection error
+      // Fallback to local dense embedding on error
+    }
+  }
+
+  if (provider === "openai-compatible") {
+    const endpoint = config.semanticSearch.endpoint || "https://api.openai.com/v1/embeddings";
+    const model = config.semanticSearch.model || "text-embedding-3-small";
+    const apiKeyVar = config.semanticSearch.apiKeyEnvVar || "OPENAI_API_KEY";
+    const apiKey = process.env[apiKeyVar];
+
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (apiKey) {
+      headers["Authorization"] = `Bearer ${apiKey}`;
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ model, input: text }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const json = (await res.json()) as any;
+        const rawVec: number[] | undefined = json.data?.[0]?.embedding ?? json.embedding;
+        if (Array.isArray(rawVec) && rawVec.length > 0) {
+          const sumSq = rawVec.reduce((acc, v) => acc + v * v, 0);
+          const norm = Math.sqrt(sumSq) || 1;
+          return rawVec.map((v) => v / norm);
+        }
+      }
+    } catch {
+      // Fallback to local dense embedding on error
     }
   }
 
