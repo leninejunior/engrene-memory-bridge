@@ -116,10 +116,13 @@ If a tool can run shell commands or supports pre/post task scripts, it can use t
 ## Install
 
 ```bash
-npm install -g memory-bridge
-# or (if unscoped name is unavailable)
-# npm install -g @engrene/memory-bridge
-# or install directly from this repository
+# Install globally from npm:
+npm install -g engrene-memory-bridge
+
+# Or run on demand without installing:
+npx engrene-memory-bridge resume
+
+# Or install directly from GitHub:
 npm install -g git+https://github.com/leninejunior/engrene-memory-bridge.git
 ```
 

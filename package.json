@@ -1,5 +1,5 @@
 {
-  "name": "memory-bridge",
+  "name": "engrene-memory-bridge",
   "version": "0.1.0",
   "description": "Local-first interoperable memory bridge for AI tools and CLIs",
   "license": "MIT",
@@ -21,6 +21,7 @@
   ],
   "type": "module",
   "bin": {
+    "engrene-memory-bridge": "dist/src/cli/bin.js",
     "memory-bridge": "dist/src/cli/bin.js",
     "mb-aider": "dist/src/wrappers/mb-aider.js",
     "mb-antigravity": "dist/src/wrappers/mb-antigravity.js",
