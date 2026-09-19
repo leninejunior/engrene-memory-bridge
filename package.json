@@ -49,12 +49,13 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "npm run clean && tsc -p tsconfig.json && mkdir -p dist/src/ui && cp -R src/ui/public dist/src/ui/public",
+    "build": "npm run clean && tsc -p tsconfig.json && mkdir -p dist/src/ui && cp -R src/ui/public dist/src/ui/public && chmod +x dist/src/cli/bin.js dist/src/wrappers/*.js",
     "clean": "rm -rf dist",
     "test": "npm run build && node --test dist/tests/unit/*.test.js dist/tests/integration/*.test.js",
     "test:unit": "npm run build && node --test dist/tests/unit/*.test.js",
     "test:integration": "npm run build && node --test dist/tests/integration/*.test.js",
     "smoke:local": "npm run build && node dist/tests/integration/smoke-real-workspace.smoke.js",
+    "prepare": "npm run build",
     "ui": "npm run build && node dist/src/cli/bin.js ui"
   },
   "devDependencies": {
