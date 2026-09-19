@@ -203,3 +203,43 @@ test("superseded decision purge removes obsolete decisions from vector DB", asyn
   const result = await searchMemory({ workspace, config, query: "Redis", mode: "semantic", limit: 5 });
   assert.equal(result.hits.some((h) => h.ref === "decision:dec-old-redis"), false);
 });
+
+test("superseded decision purge via flatMap cleans up stale decisions across history windows", async () => {
+  const { appendDecisionEvent } = await import("../../src/core/store.js");
+  const { indexSemanticFromState, searchMemory } = await import("../../src/core/search.js");
+  const { upsertSemanticDoc } = await import("../../src/core/vector.js");
+
+  const workspace = await makeTempWorkspace("mb-purge-flatmap-");
+  const { config } = await initWorkspace({ workspace, enableSemanticSearch: true });
+
+  // Manually seed old decision into SQLite DB to simulate legacy/stale indexed state
+  await upsertSemanticDoc(workspace, config, {
+    id: "decision:dec-legacy-old",
+    source: "decisions",
+    ts: "2026-09-19T01:00:00.000Z",
+    ref: "decision:dec-legacy-old",
+    text: "Legacy choice: Use MySQL for storage"
+  });
+
+  // Verify legacy decision exists in vector DB
+  let { hits } = await searchMemory({ workspace, config, query: "MySQL", mode: "semantic", limit: 5 });
+  assert.ok(hits.some((h) => h.ref === "decision:dec-legacy-old"));
+
+  // Append new decision that references dec-legacy-old in supersedes
+  const newDecision: DecisionEvent = {
+    id: "dec-modern-sqlite",
+    ts: "2026-09-19T12:00:00.000Z",
+    title: "Migrate to SQLite",
+    context: "MySQL is deprecated",
+    decision: "Use local-first SQLite",
+    impact: "Zero network calls",
+    supersedes: ["dec-legacy-old"]
+  };
+
+  await appendDecisionEvent(workspace, config, newDecision);
+  await indexSemanticFromState(workspace, config);
+
+  // Search again: legacy superseded decision must be purged via flatMap supersedes lookup
+  const result = await searchMemory({ workspace, config, query: "MySQL", mode: "semantic", limit: 5 });
+  assert.equal(result.hits.some((h) => h.ref === "decision:dec-legacy-old"), false);
+});
