@@ -31,7 +31,7 @@ Commands:
   consolidate [--workspace <path>] [--json]
   doctor [--workspace <path>] [--json]
   search <query> [--mode text|semantic|hybrid] [--limit <n>] [--workspace <path>] [--json]
-  hook print <zsh|bash|fish|aider|claude|git> [--json]
+  hook print <zsh|bash|fish|aider|claude|git|antigravity> [--json]
   ui [--workspace <path>] [--host <host>] [--port <n>] [--readonly] [--json]
 `;
 }
@@ -436,8 +436,18 @@ if command -v memory-bridge >/dev/null 2>&1; then
   fi
 fi
 `;
+    case "antigravity":
+      return `# Antigravity Skill Setup
+# To enable memory-bridge skill across all projects in Antigravity:
+mkdir -p ~/.gemini/config/skills/memory-bridge
+cp skills/memory-bridge/SKILL.md ~/.gemini/config/skills/memory-bridge/SKILL.md
+
+# Or for this repository only:
+mkdir -p .agents/skills/memory-bridge
+cp skills/memory-bridge/SKILL.md .agents/skills/memory-bridge/SKILL.md
+`;
     default:
-      return `# Unknown hook target: ${target}. Supported targets: zsh, bash, fish, aider, claude, git\n`;
+      return `# Unknown hook target: ${target}. Supported targets: zsh, bash, fish, aider, claude, git, antigravity\n`;
   }
 }
 
@@ -446,7 +456,7 @@ async function commandHook(argv: string[], asJson: boolean): Promise<void> {
   const target = argv[1];
 
   if (!action || action !== "print" || !target) {
-    fail("Usage: memory-bridge hook print <zsh|bash|fish|aider|claude|git> [--json]", asJson);
+    fail("Usage: memory-bridge hook print <zsh|bash|fish|aider|claude|git|antigravity> [--json]", asJson);
   }
 
   const snippet = generateHookSnippet(target);

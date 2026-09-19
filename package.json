@@ -46,6 +46,7 @@
     "SPEC.md",
     "CONTRIBUTING.md",
     "RELEASE_CHECKLIST.md",
+    "skills",
     "LICENSE"
   ],
   "scripts": {
