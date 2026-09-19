@@ -26,13 +26,37 @@ Every tool reads and writes the same memory contract:
 
 This is how context survives tool switching.
 
-## Why use this instead of an MCP memory server?
+## ⚡ Zero Background Daemons: Does npm need to be running?
 
-- No vendor lock-in: memory is plain files in your repository, not tied to one runtime.
-- Tool interoperability: any IDE/CLI can read and write the same contract.
-- Local-first privacy: data stays local by default, with redaction and optional encryption.
-- Auditability: you can inspect exactly what was stored and why.
-- Resilience: workflows continue even if a remote memory service is unavailable.
+**No! Nothing needs to run in the background.**
+
+* **Zero Daemons / Zero Memory Overhead**: Memory Bridge is **not** a continuous service, daemon, or server. There is no `npm start` eating RAM or draining your laptop battery.
+* **Instant Disk Execution**: When you or an AI agent runs a command (`memory-bridge log`, `resume`, `decision add`), it executes in **milliseconds**, writes plain text to `.memory-bridge/` on disk, and terminates immediately.
+* **Pure Filesystem Persistence**: All memory lives in human-readable Markdown (`.md`) and JSON Lines (`.jsonl`) files. If your machine reboots or the terminal closes, everything is already safe on disk.
+* **Direct File Fallback**: Even in restricted environments where terminal execution is disabled, any AI can read and write memory directly using standard file editing.
+
+### 🌐 What is Port 8787 then?
+
+Port `8787` is **strictly for the optional human visual dashboard** (`memory-bridge ui`):
+
+* It is built for **you** (the human developer) to inspect context, read the AI event timeline, and edit objectives in your web browser (`http://127.0.0.1:8787`).
+* **AI agents NEVER use port 8787.** They interact directly with local files or via fast CLI commands.
+* You can keep the UI server closed (`Ctrl+C`) indefinitely — Memory Bridge and all AI agents will continue saving and synchronizing context seamlessly.
+
+## 🚀 Key Advantages of Memory Bridge
+
+1. **Zero Vendor Lock-in (Multi-AI Freedom)**:
+   Switch between **Claude Code**, **Cursor**, **Antigravity**, **GitHub Copilot**, **Codex**, **Aider**, and **Gemini** effortlessly. Session context started in one tool is resumed identically in another.
+2. **Local-First & Complete Privacy**:
+   Your codebase and memories stay 100% on your local disk. No external vector databases or third-party cloud telemetry required.
+3. **Automatic Secret Redaction**:
+   API keys, GitHub tokens, private keys, and passwords are automatically scrubbed and redacted before being saved to memory.
+4. **Transparent & Auditable**:
+   No black-box databases. Plain Markdown and JSON Lines mean you can open git diffs, inspect exactly what was saved, and edit anything by hand.
+5. **Zero Runtime Dependencies**:
+   Engineered using pure Node.js standard library — zero third-party packages to install at runtime, zero security vulnerabilities.
+6. **Battery & Performance Friendly**:
+   No persistent Node or Python daemons running silently in the background. Runs only when invoked.
 
 ## What gets stored?
 

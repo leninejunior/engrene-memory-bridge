@@ -121,3 +121,4 @@ memory-bridge handoff build
 2. **Zero Runtime Dependencies**: The core memory engine uses pure Node.js stdlib and zero third-party dependencies at runtime. Keep it lean and secure.
 3. **Secret Redaction**: Sensitive patterns (API keys, GitHub tokens, passwords) are automatically redacted, but agents must never log real credentials.
 4. **Git Hygiene**: Do not commit `.memory-bridge/sessions/` or private logs (handled by `.gitignore`).
+5. **Zero Background Daemons**: Memory Bridge is completely stateless and file-driven. Never attempt to launch or require background daemons or port 8787 (which is only an optional web UI for humans) to save memory; CLI commands or direct filesystem reads/writes are instant and complete.
