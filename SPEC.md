@@ -28,6 +28,10 @@ Fields (required):
 - `summary` (string)
 - `tags` (string[])
 
+Optional fields:
+- `taskId` (string, Orca/subagent task identifier)
+- `parentTaskId` (string, parent task identifier)
+
 ### 2.2 `decision_event`
 Fields (required):
 - `id` (string)
@@ -103,8 +107,11 @@ Core commands:
 - `decision add`
 - `handoff build`
 - `resume --for <tool>`
+- `lint`
+- `consolidate`
 - `doctor`
 - `search <query>`
+- `hook print <target>`
 - `ui`
 
 ## 8. Wrapper Contract

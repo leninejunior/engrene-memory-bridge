@@ -27,6 +27,9 @@ export function validateSessionEvent(value: unknown): value is SessionEvent {
     return false;
   }
   const record = value as Record<string, unknown>;
+  const hasValidOptionalTaskId = record.taskId === undefined || isString(record.taskId);
+  const hasValidOptionalParentTaskId = record.parentTaskId === undefined || isString(record.parentTaskId);
+
   return (
     isString(record.ts) &&
     isIsoLike(record.ts) &&
@@ -37,7 +40,9 @@ export function validateSessionEvent(value: unknown): value is SessionEvent {
     isStringArray(record.actions) &&
     isStringArray(record.artifacts) &&
     isString(record.summary) &&
-    isStringArray(record.tags)
+    isStringArray(record.tags) &&
+    hasValidOptionalTaskId &&
+    hasValidOptionalParentTaskId
   );
 }
 

@@ -63,6 +63,7 @@ export async function withLock<T>(
   fn: () => Promise<T>,
   timeoutMs = 15000
 ): Promise<T> {
+  await ensureDirSecure(path.dirname(lockPath));
   const startedAt = nowMs();
   // Simple lockfile for cross-process write serialization.
   while (true) {

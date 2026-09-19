@@ -40,6 +40,8 @@
   "files": [
     "dist/src",
     "README.md",
+    "ARCHITECTURE.md",
+    "ROADMAP.md",
     "INTEGRATIONS.md",
     "SPEC.md",
     "CONTRIBUTING.md",

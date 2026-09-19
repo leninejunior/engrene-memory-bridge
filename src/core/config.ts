@@ -15,9 +15,9 @@ import { resolveBridgePaths, type BridgePaths } from "./paths.js";
 
 export interface InitOptions {
   workspace: string;
-  enableEncryption: boolean;
-  enableSemanticSearch: boolean;
-  disableRedaction: boolean;
+  enableEncryption?: boolean;
+  enableSemanticSearch?: boolean;
+  disableRedaction?: boolean;
   projectName?: string;
 }
 
@@ -78,7 +78,8 @@ export async function loadConfig(workspace: string): Promise<ConfigLoadResult> {
     projectName: normalizeProjectName(parsed.projectName || path.basename(paths.workspace)),
     createdAt: parsed.createdAt || new Date().toISOString(),
     redaction: {
-      enabled: parsed.redaction?.enabled ?? true
+      enabled: parsed.redaction?.enabled ?? true,
+      ...(Array.isArray(parsed.redaction?.customPatterns) ? { customPatterns: parsed.redaction.customPatterns } : {})
     },
     encryption: {
       enabled: parsed.encryption?.enabled ?? false,
@@ -146,9 +147,9 @@ export async function initWorkspace(options: InitOptions): Promise<InitResult> {
   await ensureDirSecure(paths.sessionsDir);
 
   const base = defaultConfig(options.projectName || path.basename(workspace));
-  base.redaction.enabled = !options.disableRedaction;
-  base.encryption.enabled = options.enableEncryption;
-  base.semanticSearch.enabled = options.enableSemanticSearch;
+  base.redaction.enabled = options.disableRedaction !== true;
+  base.encryption.enabled = Boolean(options.enableEncryption);
+  base.semanticSearch.enabled = Boolean(options.enableSemanticSearch);
 
   if (!(await exists(paths.configFile))) {
     await writeJsonFile(paths.configFile, base, paths.lockFile);

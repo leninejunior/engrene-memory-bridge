@@ -36,7 +36,7 @@ export async function appendSessionEvent(
   session: SessionEvent
 ): Promise<PersistResult> {
   const paths = resolveBridgePaths(path.resolve(workspace));
-  const event = config.redaction.enabled ? redactUnknown(session) : session;
+  const event = config.redaction.enabled ? redactUnknown(session, config.redaction.customPatterns) : session;
   if (!validateSessionEvent(event)) {
     throw new Error("Invalid session_event payload.");
   }
@@ -53,7 +53,7 @@ export async function appendDecisionEvent(
   decision: DecisionEvent
 ): Promise<PersistResult> {
   const paths = resolveBridgePaths(path.resolve(workspace));
-  const event = config.redaction.enabled ? redactUnknown(decision) : decision;
+  const event = config.redaction.enabled ? redactUnknown(decision, config.redaction.customPatterns) : decision;
   if (!validateDecisionEvent(event)) {
     throw new Error("Invalid decision_event payload.");
   }
@@ -123,7 +123,7 @@ export async function readProjectContext(workspace: string): Promise<string | un
 
 export async function saveHandoff(workspace: string, config: BridgeConfig, markdown: string): Promise<PersistResult> {
   const paths = resolveBridgePaths(path.resolve(workspace));
-  const payload = config.redaction.enabled ? redactUnknown(markdown) : markdown;
+  const payload = config.redaction.enabled ? redactUnknown(markdown, config.redaction.customPatterns) : markdown;
   const content = config.encryption.enabled ? encryptTextIfNeeded(payload, config) : payload;
   await withLock(paths.lockFile, async () => {
     await atomicWriteFile(paths.handoffFile, content.endsWith("\n") ? content : `${content}\n`, 0o600);

@@ -10,6 +10,8 @@ export interface SessionEvent {
   artifacts: StringList;
   summary: string;
   tags: StringList;
+  taskId?: string;
+  parentTaskId?: string;
 }
 
 export interface DecisionEvent {
@@ -28,6 +30,7 @@ export interface BridgeConfig {
   createdAt: string;
   redaction: {
     enabled: boolean;
+    customPatterns?: string[];
   };
   encryption: {
     enabled: boolean;

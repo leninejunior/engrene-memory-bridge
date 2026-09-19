@@ -322,6 +322,8 @@ memory-bridge doctor --json
 ## Docs
 
 - [Specification](./SPEC.md)
+- [Architecture](./ARCHITECTURE.md)
+- [Community Roadmap](./ROADMAP.md)
 - [Integration guide](./INTEGRATIONS.md)
 - [Contributing](./CONTRIBUTING.md)
 - [Release checklist](./RELEASE_CHECKLIST.md)
