@@ -102,3 +102,19 @@ mb-hermes post \
 2. **Zero Runtime Dependencies**: The core uses pure Node.js stdlib.
 3. **Automatic Redaction**: API keys, tokens, and private keys are scrubbed before persistence.
 4. **Zero Daemons**: No background daemon required. Everything executes in milliseconds and terminates immediately.
+
+---
+
+## ⚖️ Memory Bridge vs. Hermes Hindsight Plugin
+
+Hermes Agent includes an optional built-in memory plugin called **Hindsight** (`plugins/memory/hindsight/`). Here is why Memory Bridge provides a lighter, cross-tool alternative or companion:
+
+| Feature | Hermes Hindsight Plugin | Engrene Memory Bridge |
+|---|---|---|
+| **Interoperability** | **Siloed in Hermes**: Claude, Cursor, Codex, Gemini cannot access Hindsight memory. | **Universal (Multi-AI)**: Shared repository memory across Hermes, Claude, Cursor, Codex, Gemini, Antigravity, Aider. |
+| **Dependencies** | **Heavy Python Stack**: Requires `hindsight-client`, `transformers`, `sentence-transformers`, `huggingface-hub`. | **Zero Runtime Dependencies**: Pure Node.js standard library (package < 90 kB). |
+| **Daemons & Resources** | Requires active background daemons/ports (`local_embedded`) or external API keys (`HINDSIGHT_API_KEY`). | **Zero Daemons**: Stateless CLI commands that execute in milliseconds and exit. No RAM or battery drain. |
+| **Data Transparency** | Internal graph/databases managed by the Hindsight client. | **Human-Readable in Git**: Clean Markdown (`.md`) and JSONL in `.memory-bridge/`, fully auditable via `git diff`. |
+| **Search Engine** | Entity graph resolution. | **Hybrid Search**: SQLite FTS5 (BM25) + dense local embeddings + Reciprocal Rank Fusion (RRF). |
+| **Setup Effort** | Complex Python environment setup and model weight downloads. | **1-Click Automated**: `memory-bridge install hermes` (configures MCP and installs skill automatically). |
+
