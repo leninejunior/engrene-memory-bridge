@@ -310,6 +310,14 @@ async function openDb(dbPath: string): Promise<SqliteDbLike> {
       tokenize='unicode61'
     );
   `);
+
+  // Schema migration: ensure memory_type exists on older sqlite files
+  try {
+    db.exec("ALTER TABLE docs ADD COLUMN memory_type TEXT;");
+  } catch {
+    // Column already exists
+  }
+
   return db;
 }
 
