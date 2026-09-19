@@ -116,7 +116,29 @@ Map these commands:
   - `memory-bridge log --tool <tool> ... --json`
   - `memory-bridge handoff build --json`
 
-## Option D: Windows scripts (PowerShell/cmd)
+## Option D: Antigravity Native Skill
+
+For developers using Google Antigravity IDE or CLI, `engrene-memory-bridge` includes a native skill:
+
+```bash
+# View setup instructions:
+memory-bridge hook print antigravity
+
+# Install globally for all projects in Antigravity:
+mkdir -p ~/.gemini/config/skills/memory-bridge
+cp skills/memory-bridge/SKILL.md ~/.gemini/config/skills/memory-bridge/SKILL.md
+
+# Or install for this repository only:
+mkdir -p .agents/skills/memory-bridge
+cp skills/memory-bridge/SKILL.md .agents/skills/memory-bridge/SKILL.md
+```
+
+Once installed, Antigravity automatically detects the skill and will:
+1. Run `memory-bridge resume` before executing tasks.
+2. Record `memory-bridge decision add` whenever architectural choices are made.
+3. Run `memory-bridge log` and `memory-bridge handoff build` upon task completion.
+
+## Option E: Windows scripts (PowerShell/cmd)
 
 If your team uses Windows terminals, use the helper scripts from `scripts/windows`:
 
@@ -155,7 +177,7 @@ scripts\windows\mb-pre.cmd -Tool gemini
 scripts\windows\mb-post.cmd -Tool gemini -Intent "Implement report export" -Summary "CSV endpoint added" -Actions "TODO: pagination" -Artifacts "src/reports.ts" -Tags "reporting,api"
 ```
 
-## Option E: Linux & macOS scripts (Bash/Zsh)
+## Option F: Linux & macOS scripts (Bash/Zsh)
 
 If your team uses Linux or macOS terminal environments, use the helper scripts from `scripts/linux`:
 
