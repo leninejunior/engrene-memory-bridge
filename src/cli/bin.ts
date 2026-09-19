@@ -9,7 +9,7 @@ import { initWorkspace, loadConfig } from "../core/config.js";
 import { runConsolidation } from "../core/consolidate.js";
 import { buildContextSnapshot, renderHandoffMarkdown, renderResumeText } from "../core/context.js";
 import { runDoctor } from "../core/doctor.js";
-import { currentGitBranch, resolveWorkspaceWithGitFallback } from "../core/git.js";
+import { currentGitBranch, detectGitChanges, resolveWorkspaceWithGitFallback } from "../core/git.js";
 import { runLint } from "../core/lint.js";
 import { searchMemory, type SearchMode } from "../core/search.js";
 import { appendDecisionEvent, appendSessionEvent, saveHandoff } from "../core/store.js";
@@ -101,12 +101,39 @@ async function commandLog(argv: string[], asJson: boolean): Promise<void> {
   const workspace = normalizeWorkspace(getStringFlag(parsed, "workspace"));
   const { config } = await loadConfig(workspace);
 
+  const gitChanges = detectGitChanges(workspace);
+
   const ts = new Date().toISOString();
-  const tool = requireString(getStringFlag(parsed, "tool"), "--tool", asJson);
-  const intent = requireString(getStringFlag(parsed, "intent"), "--intent", asJson);
-  const summary = requireString(getStringFlag(parsed, "summary"), "--summary", asJson);
+  const tool = getStringFlag(parsed, "tool") || "cli";
+  const isAuto = Boolean(getBoolFlag(parsed, "auto") || (!getStringFlag(parsed, "intent") && !getStringFlag(parsed, "summary")));
+
+  let intent = getStringFlag(parsed, "intent");
+  if (!intent) {
+    if (isAuto && gitChanges.recentCommitMessage) {
+      intent = gitChanges.recentCommitMessage;
+    } else if (isAuto && gitChanges.branch) {
+      intent = `Work on branch ${gitChanges.branch}`;
+    } else {
+      intent = requireString(undefined, "--intent", asJson);
+    }
+  }
+
+  let summary = getStringFlag(parsed, "summary");
+  if (!summary) {
+    if (isAuto && gitChanges.modifiedFiles.length > 0) {
+      summary = `Auto-captured: modified ${gitChanges.modifiedFiles.length} file(s) (${gitChanges.modifiedFiles.slice(0, 4).join(", ")})`;
+    } else if (isAuto) {
+      summary = "Automated work session recorded from workspace state";
+    } else {
+      summary = requireString(undefined, "--summary", asJson);
+    }
+  }
+
   const taskId = getStringFlag(parsed, "task-id");
   const parentTaskId = getStringFlag(parsed, "parent-task-id");
+
+  const cliArtifacts = getListFlag(parsed, "artifacts");
+  const artifacts = cliArtifacts.length > 0 ? cliArtifacts : (isAuto ? gitChanges.modifiedFiles.slice(0, 10) : []);
 
   const event: SessionEvent = {
     ts,
@@ -115,7 +142,7 @@ async function commandLog(argv: string[], asJson: boolean): Promise<void> {
     branch: getStringFlag(parsed, "branch") || currentGitBranch(workspace),
     intent,
     actions: getListFlag(parsed, "actions"),
-    artifacts: getListFlag(parsed, "artifacts"),
+    artifacts,
     summary,
     tags: getListFlag(parsed, "tags"),
     ...(taskId ? { taskId } : {}),

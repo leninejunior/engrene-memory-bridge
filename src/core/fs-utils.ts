@@ -69,6 +69,36 @@ export async function atomicWriteFile(filePath: string, content: string, mode = 
   }
 }
 
+function isPidAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (err) {
+    return (err as NodeJS.ErrnoException).code === "EPERM";
+  }
+}
+
+async function checkAndBreakStaleLock(lockPath: string, staleMs = 15000): Promise<boolean> {
+  try {
+    const content = await fs.readFile(lockPath, "utf8");
+    const [pidStr, tsStr] = content.trim().split(":");
+    const pid = Number(pidStr);
+    const ts = Number(tsStr);
+    const now = Date.now();
+
+    const isStaleByTime = !Number.isNaN(ts) && now - ts > staleMs;
+    const isProcessDead = !Number.isNaN(pid) && pid > 0 && !isPidAlive(pid);
+
+    if (isStaleByTime || isProcessDead) {
+      await fs.unlink(lockPath).catch(() => {});
+      return true;
+    }
+  } catch {
+    // Lock removed or inaccessible in race condition
+  }
+  return false;
+}
+
 export async function withLock<T>(
   lockPath: string,
   fn: () => Promise<T>,
@@ -76,7 +106,7 @@ export async function withLock<T>(
 ): Promise<T> {
   await ensureDirSecure(path.dirname(lockPath));
   const startedAt = nowMs();
-  // Simple lockfile for cross-process write serialization.
+  // Simple lockfile with PID and timestamp verification for cross-process safety
   while (true) {
     try {
       const handle = await fs.open(lockPath, "wx", 0o600);
@@ -94,19 +124,25 @@ export async function withLock<T>(
       if (code !== "EEXIST" && code !== "EPERM") {
         throw error;
       }
+      // Inspect existing lock for dead process or stale timestamp
+      await checkAndBreakStaleLock(lockPath, timeoutMs);
+
       if (nowMs() - startedAt > timeoutMs) {
         throw new Error(`Timed out waiting for lock: ${lockPath}`);
       }
-      await sleep(30 + Math.floor(Math.random() * 40));
+      await sleep(25 + Math.floor(Math.random() * 35));
     }
   }
 }
 
 export async function appendJsonlAtomic(filePath: string, line: string, lockPath: string): Promise<void> {
   await withLock(lockPath, async () => {
-    const current = (await readText(filePath)) ?? "";
-    const next = `${current}${line.endsWith("\n") ? line : `${line}\n`}`;
-    await atomicWriteFile(filePath, next, 0o600);
+    await ensureDirSecure(path.dirname(filePath));
+    const formatted = line.endsWith("\n") ? line : `${line}\n`;
+    await fs.appendFile(filePath, formatted, { encoding: "utf8", mode: 0o600 });
+    if (process.platform !== "win32") {
+      await fs.chmod(filePath, 0o600).catch(() => {});
+    }
   });
 }
 

@@ -14,7 +14,8 @@
 </p>
 
 <p align="center">
-  <strong>Universal Local-First Memory Adapter for AI Coding Agents</strong><br />
+  <strong>An open memory protocol for AI coding agents.</strong><br />
+  <em>One project. One memory. Any agent.</em><br />
   Continuous context across Hermes Agent, Claude Code, Cursor, Codex, Gemini CLI, Qwen Code, Antigravity, and Aider.
 </p>
 

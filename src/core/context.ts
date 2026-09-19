@@ -79,6 +79,35 @@ export interface BuildContextResult {
   handoff: string | undefined;
 }
 
+export function filterActiveDecisions(events: DecisionEvent[]): {
+  active: DecisionEvent[];
+  superseded: DecisionEvent[];
+} {
+  const supersededIds = new Set<string>();
+  for (const event of events) {
+    if (Array.isArray(event.supersedes)) {
+      for (const id of event.supersedes) {
+        if (id) {
+          supersededIds.add(id);
+        }
+      }
+    }
+  }
+
+  const active: DecisionEvent[] = [];
+  const superseded: DecisionEvent[] = [];
+
+  for (const event of events) {
+    if (supersededIds.has(event.id)) {
+      superseded.push(event);
+    } else {
+      active.push(event);
+    }
+  }
+
+  return { active, superseded };
+}
+
 export async function buildContextSnapshot(
   workspace: string,
   config: BridgeConfig
@@ -97,12 +126,16 @@ export async function buildContextSnapshot(
   ];
 
   const latestSession = sessionsResult.events.at(-1);
-  const objective =
-    latestSession?.intent ||
-    parseProjectObjective(projectContext) ||
-    "No explicit objective yet. Add one in project-context.md or log an intent.";
+  const rawProjectObjective = parseProjectObjective(projectContext);
+  const isTemplatePlaceholder =
+    Boolean(rawProjectObjective && /describe the current milestone/i.test(rawProjectObjective));
 
-  const recentDecisions = decisionsResult.events.slice(-5);
+  const projectObjective = !isTemplatePlaceholder && rawProjectObjective ? rawProjectObjective : undefined;
+  const currentTask = latestSession?.intent;
+
+  const { active: activeDecisions } = filterActiveDecisions(decisionsResult.events);
+  const recentDecisions = activeDecisions.slice(-5);
+
   const pending = compactList(
     [
       ...parseBulletsFromSection(handoffResult.text, "Pending"),
@@ -119,16 +152,27 @@ export async function buildContextSnapshot(
     8
   );
 
+  const objective =
+    latestSession?.intent ||
+    projectObjective ||
+    rawProjectObjective ||
+    "No explicit objective yet. Add one in project-context.md or log an intent.";
+
   if (sessionsResult.events.length === 0) {
     warnings.push("No session history found yet.");
   }
   if (decisionsResult.events.length === 0) {
     warnings.push("No decision history found yet.");
   }
+  const currentFocus = nextSteps[0] || pending[0] || undefined;
 
   const snapshot: ResumeSnapshot = {
     objective,
+    projectObjective,
+    currentTask,
+    currentFocus,
     recentDecisions,
+    activeDecisions,
     pending,
     nextSteps,
     warnings
@@ -148,7 +192,10 @@ export function renderResumeText(tool: string, snapshot: ResumeSnapshot): string
     snapshot.recentDecisions.length === 0
       ? "- None"
       : snapshot.recentDecisions
-          .map((item) => `- [${item.id}] ${item.title}: ${item.decision}`)
+          .map((item) => {
+            const supersededTag = item.supersedes && item.supersedes.length > 0 ? ` (supersedes ${item.supersedes.join(", ")})` : "";
+            return `- [${item.id}] ${item.title}${supersededTag}: ${item.decision}`;
+          })
           .join("\n");
 
   const pending = snapshot.pending.length === 0 ? "- None" : snapshot.pending.map((item) => `- ${item}`).join("\n");
@@ -160,10 +207,17 @@ export function renderResumeText(tool: string, snapshot: ResumeSnapshot): string
       ? ""
       : `\nWarnings:\n${snapshot.warnings.map((item) => `- ${item}`).join("\n")}`;
 
+  const primaryObjective = snapshot.projectObjective || snapshot.objective;
+  const taskLine =
+    snapshot.currentTask && snapshot.currentTask !== primaryObjective
+      ? `\nCurrent Task: ${snapshot.currentTask}`
+      : "";
+  const focusLine = snapshot.currentFocus ? `\nImmediate Focus: ${snapshot.currentFocus}` : "";
+
   return [
     `Resume for ${tool}`,
     "",
-    `Objective: ${snapshot.objective}`,
+    `Objective: ${primaryObjective}${taskLine}${focusLine}`,
     "",
     "Recent Decisions:",
     decisions,
@@ -175,6 +229,7 @@ export function renderResumeText(tool: string, snapshot: ResumeSnapshot): string
     nextSteps,
     warnings
   ]
+    .filter((line) => line !== undefined)
     .join("\n")
     .trimEnd() + "\n";
 }

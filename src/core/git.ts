@@ -43,3 +43,53 @@ export function resolveWorkspaceWithGitFallback(workspace: string): string {
   }
   return normalized;
 }
+
+export interface GitChangesResult {
+  branch: string;
+  modifiedFiles: string[];
+  recentCommitMessage?: string | undefined;
+}
+
+export function detectGitChanges(workspace: string): GitChangesResult {
+  const branch = currentGitBranch(workspace);
+  const modifiedFiles: string[] = [];
+  let recentCommitMessage: string | undefined;
+
+  try {
+    const statusOut = execSync("git status --porcelain", {
+      cwd: workspace,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"]
+    }).trim();
+
+    if (statusOut) {
+      for (const line of statusOut.split(/\r?\n/)) {
+        const file = line.slice(3).trim();
+        if (file && !file.startsWith(".memory-bridge/")) {
+          modifiedFiles.push(file);
+        }
+      }
+    }
+  } catch {
+    // Git status not available or non-git workspace
+  }
+
+  try {
+    const logOut = execSync("git log -1 --pretty=format:%s", {
+      cwd: workspace,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"]
+    }).trim();
+    if (logOut) {
+      recentCommitMessage = logOut;
+    }
+  } catch {
+    // Git log not available
+  }
+
+  return {
+    branch,
+    modifiedFiles,
+    recentCommitMessage
+  };
+}

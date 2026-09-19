@@ -73,7 +73,11 @@ export interface BridgeConfig {
 
 export interface ResumeSnapshot {
   objective: string;
+  projectObjective?: string | undefined;
+  currentTask?: string | undefined;
+  currentFocus?: string | undefined;
   recentDecisions: DecisionEvent[];
+  activeDecisions?: DecisionEvent[] | undefined;
   pending: string[];
   nextSteps: string[];
   warnings: string[];

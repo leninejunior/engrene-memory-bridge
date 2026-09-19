@@ -283,42 +283,58 @@ interface SqliteDbLike {
   close: () => void;
 }
 
-async function openDb(dbPath: string): Promise<SqliteDbLike> {
-  const sqliteModule = await import("node:sqlite");
-  const DatabaseSyncCtor = sqliteModule.DatabaseSync;
-  const db = new DatabaseSyncCtor(dbPath);
-
-  // Initialize both dense vector table and FTS5 full-text search table
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS docs (
-      id TEXT PRIMARY KEY,
-      source TEXT NOT NULL,
-      ts TEXT NOT NULL,
-      ref TEXT,
-      text TEXT NOT NULL,
-      vector TEXT NOT NULL,
-      memory_type TEXT
-    );
-    CREATE INDEX IF NOT EXISTS idx_docs_ts ON docs(ts DESC);
-    CREATE VIRTUAL TABLE IF NOT EXISTS fts_docs USING fts5(
-      id UNINDEXED,
-      source,
-      ts,
-      ref,
-      text,
-      memory_type,
-      tokenize='unicode61'
-    );
-  `);
-
-  // Schema migration: ensure memory_type exists on older sqlite files
+export async function isSqliteSupported(): Promise<boolean> {
   try {
-    db.exec("ALTER TABLE docs ADD COLUMN memory_type TEXT;");
+    const sqliteModule = await import("node:sqlite");
+    return typeof (sqliteModule as any).DatabaseSync === "function";
   } catch {
-    // Column already exists
+    return false;
   }
+}
 
-  return db;
+async function openDb(dbPath: string): Promise<SqliteDbLike | null> {
+  try {
+    const sqliteModule = await import("node:sqlite");
+    const DatabaseSyncCtor = (sqliteModule as any).DatabaseSync;
+    if (!DatabaseSyncCtor) {
+      return null;
+    }
+    const db = new DatabaseSyncCtor(dbPath);
+
+    // Initialize both dense vector table and FTS5 full-text search table
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS docs (
+        id TEXT PRIMARY KEY,
+        source TEXT NOT NULL,
+        ts TEXT NOT NULL,
+        ref TEXT,
+        text TEXT NOT NULL,
+        vector TEXT NOT NULL,
+        memory_type TEXT
+      );
+      CREATE INDEX IF NOT EXISTS idx_docs_ts ON docs(ts DESC);
+      CREATE VIRTUAL TABLE IF NOT EXISTS fts_docs USING fts5(
+        id UNINDEXED,
+        source,
+        ts,
+        ref,
+        text,
+        memory_type,
+        tokenize='unicode61'
+      );
+    `);
+
+    // Schema migration: ensure memory_type exists on older sqlite files
+    try {
+      db.exec("ALTER TABLE docs ADD COLUMN memory_type TEXT;");
+    } catch {
+      // Column already exists
+    }
+
+    return db;
+  } catch {
+    return null;
+  }
 }
 
 export function semanticEnabled(config: BridgeConfig): boolean {
@@ -335,6 +351,9 @@ export async function upsertSemanticDoc(
   }
   const paths = resolveBridgePaths(path.resolve(workspace));
   const db = await openDb(paths.vectorDbFile);
+  if (!db) {
+    return;
+  }
   try {
     const vector = await generateEmbedding(doc.text, config);
     db.prepare(
@@ -383,6 +402,9 @@ export async function semanticSearch(
   }
   const paths = resolveBridgePaths(path.resolve(workspace));
   const db = await openDb(paths.vectorDbFile);
+  if (!db) {
+    return [];
+  }
   try {
     const queryVector = await generateEmbedding(query, config);
     const rows = db
@@ -428,6 +450,9 @@ export async function ftsSearch(
   }
   const paths = resolveBridgePaths(path.resolve(workspace));
   const db = await openDb(paths.vectorDbFile);
+  if (!db) {
+    return [];
+  }
   try {
     const sanitized = query
       .replace(/[^a-zA-Z0-9_\s]/g, " ")
