@@ -12,6 +12,7 @@ import { currentGitBranch, resolveWorkspaceWithGitFallback } from "../core/git.j
 import { runLint } from "../core/lint.js";
 import { searchMemory, type SearchMode } from "../core/search.js";
 import { appendDecisionEvent, appendSessionEvent, saveHandoff } from "../core/store.js";
+import { redactUnknown } from "../core/redaction.js";
 import { semanticEnabled, upsertSemanticDoc } from "../core/vector.js";
 import { startUiServer } from "../ui/server.js";
 import type { DecisionEvent, SessionEvent } from "../types/events.js";
@@ -53,7 +54,10 @@ function parseLimit(raw: string | undefined, fallback: number): number {
 }
 
 function normalizeWorkspace(raw: string | undefined): string {
-  return resolveWorkspaceWithGitFallback(raw || process.cwd());
+  if (raw && raw.trim() !== "") {
+    return path.resolve(raw);
+  }
+  return resolveWorkspaceWithGitFallback(process.cwd());
 }
 
 async function commandInit(argv: string[], asJson: boolean): Promise<void> {
@@ -109,15 +113,19 @@ async function commandLog(argv: string[], asJson: boolean): Promise<void> {
     ...(parentTaskId ? { parentTaskId } : {})
   };
 
-  const persist = await appendSessionEvent(workspace, config, event);
+  const redactedEvent = config.redaction.enabled
+    ? redactUnknown(event, config.redaction.customPatterns)
+    : event;
+
+  const persist = await appendSessionEvent(workspace, config, redactedEvent);
 
   if (semanticEnabled(config)) {
     await upsertSemanticDoc(workspace, config, {
-      id: `session:${event.ts}:${event.tool}`,
+      id: `session:${redactedEvent.ts}:${redactedEvent.tool}`,
       source: "sessions",
-      ts: event.ts,
-      ref: `session:${event.ts}`,
-      text: [event.intent, event.summary, ...event.actions, ...event.artifacts, ...event.tags].join("\n")
+      ts: redactedEvent.ts,
+      ref: `session:${redactedEvent.ts}`,
+      text: [redactedEvent.intent, redactedEvent.summary, ...redactedEvent.actions, ...redactedEvent.artifacts, ...redactedEvent.tags].join("\n")
     });
   }
 
@@ -125,7 +133,7 @@ async function commandLog(argv: string[], asJson: boolean): Promise<void> {
     {
       ok: true,
       command: "log",
-      event,
+      event: redactedEvent,
       persistedAt: persist.file,
       encrypted: persist.encrypted
     },
@@ -148,15 +156,19 @@ async function commandDecisionAdd(argv: string[], asJson: boolean): Promise<void
     supersedes: getListFlag(parsed, "supersedes")
   };
 
-  const persist = await appendDecisionEvent(workspace, config, event);
+  const redactedEvent = config.redaction.enabled
+    ? redactUnknown(event, config.redaction.customPatterns)
+    : event;
+
+  const persist = await appendDecisionEvent(workspace, config, redactedEvent);
 
   if (semanticEnabled(config)) {
     await upsertSemanticDoc(workspace, config, {
-      id: `decision:${event.id}`,
+      id: `decision:${redactedEvent.id}`,
       source: "decisions",
-      ts: event.ts,
-      ref: `decision:${event.id}`,
-      text: [event.title, event.context, event.decision, event.impact, ...event.supersedes].join("\n")
+      ts: redactedEvent.ts,
+      ref: `decision:${redactedEvent.id}`,
+      text: [redactedEvent.title, redactedEvent.context, redactedEvent.decision, redactedEvent.impact, ...redactedEvent.supersedes].join("\n")
     });
   }
 
@@ -164,7 +176,7 @@ async function commandDecisionAdd(argv: string[], asJson: boolean): Promise<void
     {
       ok: true,
       command: "decision add",
-      event,
+      event: redactedEvent,
       persistedAt: persist.file,
       encrypted: persist.encrypted
     },

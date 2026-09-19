@@ -155,6 +155,29 @@ scripts\windows\mb-pre.cmd -Tool gemini
 scripts\windows\mb-post.cmd -Tool gemini -Intent "Implement report export" -Summary "CSV endpoint added" -Actions "TODO: pagination" -Artifacts "src/reports.ts" -Tags "reporting,api"
 ```
 
+## Option E: Linux & macOS scripts (Bash/Zsh)
+
+If your team uses Linux or macOS terminal environments, use the helper scripts from `scripts/linux`:
+
+- `scripts/linux/mb.sh` (recommended, runs local build or via `npx`, no global install required)
+- `scripts/linux/mb-pre.sh`
+- `scripts/linux/mb-post.sh`
+
+Quick start:
+
+```bash
+chmod +x scripts/linux/*.sh
+./scripts/linux/mb.sh init
+./scripts/linux/mb.sh resume --for gemini
+```
+
+Bash/Zsh example:
+
+```bash
+./scripts/linux/mb-pre.sh --tool gemini
+./scripts/linux/mb-post.sh --tool gemini --intent "Implement report export" --summary "CSV endpoint added" --actions "TODO: pagination" --artifacts "src/reports.ts" --tags "reporting,api" --task-id "task-rep-01"
+```
+
 ## User prompt template for IDEs
 
 When users want consistent behavior, use this instruction in IDE/system prompt:

@@ -6,6 +6,8 @@ param(
   [string]$Actions = "",
   [string]$Artifacts = "",
   [string]$Tags = "",
+  [string]$TaskId = "",
+  [string]$ParentTaskId = "",
   [string]$Workspace = ""
 )
 
@@ -24,6 +26,12 @@ if ($Artifacts -ne "") {
 }
 if ($Tags -ne "") {
   $logArgs += @("--tags", $Tags)
+}
+if ($TaskId -ne "") {
+  $logArgs += @("--task-id", $TaskId)
+}
+if ($ParentTaskId -ne "") {
+  $logArgs += @("--parent-task-id", $ParentTaskId)
 }
 if ($Workspace -ne "") {
   $logArgs += @("--workspace", $Workspace)

@@ -54,8 +54,19 @@ export async function atomicWriteFile(filePath: string, content: string, mode = 
   await ensureDirSecure(path.dirname(filePath));
   const tempPath = `${filePath}.tmp-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   await fs.writeFile(tempPath, content, { encoding: "utf8", mode });
-  await fs.rename(tempPath, filePath);
-  await fs.chmod(filePath, mode);
+  try {
+    await fs.rename(tempPath, filePath);
+  } catch (error) {
+    if (process.platform === "win32") {
+      await fs.copyFile(tempPath, filePath);
+      await fs.unlink(tempPath).catch(() => {});
+    } else {
+      throw error;
+    }
+  }
+  if (process.platform !== "win32") {
+    await fs.chmod(filePath, mode).catch(() => {});
+  }
 }
 
 export async function withLock<T>(
@@ -80,7 +91,7 @@ export async function withLock<T>(
       }
     } catch (error) {
       const code = (error as NodeJS.ErrnoException).code;
-      if (code !== "EEXIST") {
+      if (code !== "EEXIST" && code !== "EPERM") {
         throw error;
       }
       if (nowMs() - startedAt > timeoutMs) {

@@ -271,6 +271,30 @@ scripts\windows\mb-pre.cmd -Tool codex
 scripts\windows\mb-post.cmd -Tool codex -Intent "Fix auth flow" -Summary "Added guard checks" -Actions "TODO: e2e" -Artifacts "src/auth.ts" -Tags "auth,fix"
 ```
 
+## Linux & macOS helpers (Bash and Zsh)
+
+Ready-to-use scripts are available in [`scripts/linux`](./scripts/linux/README.md):
+
+- `scripts/linux/mb.sh` (recommended, runs local build or via `npx`, no global install required)
+- `scripts/linux/mb-pre.sh`
+- `scripts/linux/mb-post.sh`
+
+Quick start:
+
+```bash
+chmod +x scripts/linux/*.sh
+./scripts/linux/mb.sh init
+./scripts/linux/mb.sh doctor
+./scripts/linux/mb.sh resume --for codex
+```
+
+Bash/Zsh example:
+
+```bash
+./scripts/linux/mb-pre.sh --tool codex
+./scripts/linux/mb-post.sh --tool codex --intent "Fix auth flow" --summary "Added guard checks" --actions "TODO: e2e" --artifacts "src/auth.ts" --tags "auth,fix" --task-id "task-01"
+```
+
 ## Security
 
 ### Redaction (enabled by default)

@@ -24,6 +24,9 @@ async function statMode(filePath: string): Promise<number | undefined> {
 }
 
 function permissionIsStrict(mode: number): boolean {
+  if (process.platform === "win32") {
+    return true;
+  }
   return (mode & 0o077) === 0;
 }
 
