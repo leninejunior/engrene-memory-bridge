@@ -19,6 +19,7 @@ import { appendObservation } from "../core/capture.js";
 import { getMemoryStats } from "../core/stats.js";
 import { startMcpServer } from "../mcp/server.js";
 import { startUiServer } from "../ui/server.js";
+import { installToolIntegration } from "./install.js";
 import type { DecisionEvent, ObservationEvent, ObservationType, SessionEvent } from "../types/events.js";
 
 function usage(): string {
@@ -37,6 +38,7 @@ Commands:
   observe --type <type> --content <text> [--files a,b] [--source <src>] [--workspace <path>] [--json]
   search <query> [--mode text|semantic|hybrid] [--limit <n>] [--workspace <path>] [--json]
   mcp [--workspace <path>]
+  install <hermes|antigravity> [--workspace <path>] [--json]
   hook print <zsh|bash|fish|aider|claude|git|antigravity|hermes|qwen|cursor|mcp> [--json]
   ui [--workspace <path>] [--host <host>] [--port <n>] [--readonly] [--json]
 `;
@@ -641,6 +643,34 @@ async function commandMcp(argv: string[]): Promise<void> {
   await startMcpServer(workspace);
 }
 
+async function commandInstall(argv: string[], asJson: boolean): Promise<void> {
+  const target = argv[0];
+  if (!target) {
+    fail("Usage: memory-bridge install <hermes|antigravity> [--workspace <path>] [--json]", asJson);
+  }
+  const parsed = parseArgs(argv.slice(1));
+  const workspace = normalizeWorkspace(getStringFlag(parsed, "workspace"));
+  const result = await installToolIntegration(target, workspace);
+
+  if (asJson) {
+    printOutput({ ok: result.ok, command: "install", result }, true);
+  } else {
+    const lines = [
+      `Memory Bridge Install: ${result.target.toUpperCase()}`,
+      `Status: ${result.ok ? "OK" : "WARNINGS"}`
+    ];
+    if (result.actions.length > 0) {
+      lines.push("Actions:");
+      lines.push(...result.actions.map((a) => `  [ok] ${a}`));
+    }
+    if (result.warnings.length > 0) {
+      lines.push("Warnings:");
+      lines.push(...result.warnings.map((w) => `  [warn] ${w}`));
+    }
+    printOutput(lines.join("\n"), false);
+  }
+}
+
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
   const asJson = argv.includes("--json");
@@ -706,6 +736,11 @@ async function main(): Promise<void> {
 
   if (command === "mcp") {
     await commandMcp(commandArgs);
+    return;
+  }
+
+  if (command === "install") {
+    await commandInstall(commandArgs, asJson);
     return;
   }
 

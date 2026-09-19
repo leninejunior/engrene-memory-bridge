@@ -189,6 +189,7 @@ Memory Bridge provides zero-setup, first-class instructions so **any AI agent** 
 | Configuration File | Target AI Tool / Standard |
 |---|---|
 | [`AGENTS.md`](./AGENTS.md) | **Universal standard** for all autonomous AI coding agents |
+| [`HERMES.md`](./HERMES.md) | Hermes Agent (Nous Research) & local autonomous LLMs |
 | [`CLAUDE.md`](./CLAUDE.md) | Claude Code CLI & Anthropic models |
 | [`.cursorrules`](./.cursorrules) | Cursor IDE Composer & Agent |
 | [`.github/copilot-instructions.md`](./.github/copilot-instructions.md) | GitHub Copilot Workspace & CLI |

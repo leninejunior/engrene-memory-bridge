@@ -96,6 +96,16 @@ test("CLI commands stats, observe, and hook print work end-to-end", async () => 
       { encoding: "utf-8" }
     );
     assert.equal(qwenRes.status, 0, qwenRes.stderr);
+
+    // 6. install command
+    const installRes = spawnSync(
+      process.execPath,
+      [bin, "install", "hermes", "--workspace", tmpDir, "--json"],
+      { encoding: "utf-8" }
+    );
+    assert.equal(installRes.status, 0, installRes.stderr);
+    const installData = JSON.parse(installRes.stdout);
+    assert.equal(installData.result.target, "hermes");
   } finally {
     await fs.rm(tmpDir, { recursive: true, force: true });
   }

@@ -126,6 +126,7 @@ For developers using AI agents (Antigravity, Claude Code, Cursor, GitHub Copilot
 
 ### 1. Ready-to-Use Agent Instructions
 - **Universal Agent Standard**: [`AGENTS.md`](./AGENTS.md)
+- **Hermes Agent (Nous Research)**: [`HERMES.md`](./HERMES.md)
 - **Claude Code CLI**: [`CLAUDE.md`](./CLAUDE.md)
 - **Cursor IDE / Composer**: [`.cursorrules`](./.cursorrules)
 - **GitHub Copilot**: [`.github/copilot-instructions.md`](./.github/copilot-instructions.md)
@@ -135,18 +136,19 @@ The repository provides a declarative agent skill:
 - In-repo standard path: `.agents/skills/memory-bridge/SKILL.md`
 - Source template path: `skills/memory-bridge/SKILL.md`
 
+#### Hermes Agent Setup (Automated):
+```bash
+# Automatically configure ~/.hermes/config.yaml MCP server and install Hermes skill:
+memory-bridge install hermes
+```
+
 #### Antigravity Setup:
 ```bash
 # View setup instructions:
 memory-bridge hook print antigravity
 
-# Install globally for all projects in Antigravity:
-mkdir -p ~/.gemini/config/skills/memory-bridge
-cp skills/memory-bridge/SKILL.md ~/.gemini/config/skills/memory-bridge/SKILL.md
-
-# Or install for this repository only:
-mkdir -p .agents/skills/memory-bridge
-cp skills/memory-bridge/SKILL.md .agents/skills/memory-bridge/SKILL.md
+# Or install automatically:
+memory-bridge install antigravity
 ```
 
 Once installed or detected, any AI agent will automatically:
