@@ -116,3 +116,48 @@ test("loadConfig preserves capture settings from config.json", async () => {
   assert.equal(reloaded.capture?.maxSessions, 100);
   assert.deepEqual(reloaded.capture?.exclude, ["*.secret", ".env.local"]);
 });
+
+test("initWorkspace with enableSemanticSearch enables semantic on an existing workspace", async () => {
+  const workspace = await makeTempWorkspace("mb-init-existing-sem-");
+  // 1. Initial init without semantic search
+  const { config: initialConfig } = await initWorkspace({ workspace });
+  assert.equal(initialConfig.semanticSearch.enabled, false);
+  assert.equal(initialConfig.semanticSearch.provider, "disabled");
+
+  // 2. Re-init with enableSemanticSearch: true
+  const { config: updatedConfig } = await initWorkspace({
+    workspace,
+    enableSemanticSearch: true
+  });
+
+  assert.equal(updatedConfig.semanticSearch.enabled, true);
+  assert.equal(updatedConfig.semanticSearch.provider, "local");
+
+  // 3. Confirm reload also yields enabled=true and provider=local
+  const { config: reloaded } = await loadConfig(workspace);
+  assert.equal(reloaded.semanticSearch.enabled, true);
+  assert.equal(reloaded.semanticSearch.provider, "local");
+});
+
+test("loadConfig falls back to DEFAULT_CAPTURE_CONFIG.exclude when exclude is empty or invalid", async () => {
+  const workspace = await makeTempWorkspace("mb-load-cap-empty-");
+  const { config: initialConfig } = await initWorkspace({ workspace });
+  const paths = resolveBridgePaths(workspace);
+
+  const customConfig = {
+    ...initialConfig,
+    capture: {
+      enabled: true,
+      retentionDays: 7,
+      maxSessions: 30,
+      exclude: []
+    }
+  };
+
+  await writeJsonFile(paths.configFile, customConfig);
+
+  const { config: reloaded } = await loadConfig(workspace);
+  assert.ok(reloaded.capture);
+  assert.ok(reloaded.capture?.exclude.includes(".env*"));
+  assert.ok(reloaded.capture?.exclude.includes("node_modules/**"));
+});

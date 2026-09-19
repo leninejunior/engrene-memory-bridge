@@ -102,7 +102,7 @@ Command: `search <query>`
 
 Modes:
 - `text`: SQLite FTS5 full-text search with BM25 ranking (fallback to token scoring if SQLite unavailable)
-- `semantic`: Cosine similarity over 128-dimensional dense vector embeddings (`embedLocalDense` or external provider: `ollama`, `openai-compatible`)
+- `semantic`: Cosine similarity over 256-dimensional dense vector embeddings (`embedLocalDense` or external provider: `ollama`, `openai-compatible`)
 - `hybrid`: Reciprocal Rank Fusion (RRF) with constant k=60 combining FTS5 lexical rank, dense vector similarity, and recency boost
 
 ## 7. Model Context Protocol (MCP)

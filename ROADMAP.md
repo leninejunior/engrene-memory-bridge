@@ -286,7 +286,7 @@ Oferecer suporte de primeira classe ao Hermes Agent e Qwen Code com comando de i
 
 | Item Solicitado | Fase do Roadmap | Status / Abordagem |
 | :--- | :--- | :--- |
-| **1. Melhorar Busca Semântica** | **Fase 1** | **[Concluído]** Local-first, provider configurável, 128d dense embeddings |
+| **1. Melhorar Busca Semântica** | **Fase 1** | **[Concluído]** Local-first, provider configurável, 256d dense embeddings |
 | **2. Implementar Hybrid Search** | **Fase 2** | **[Concluído]** SQLite FTS5 BM25 + Vetores + RRF com recência |
 | **3. Captura de Sessões** | **Fase 3** | **[Concluído]** Buffer transitório `observations/`, retenção, opt-in |
 | **4. Consolidação Automática** | **Fase 4** | **[Concluído]** Dual: Determinístico (zero-LLM padrão) + LLM opcional |

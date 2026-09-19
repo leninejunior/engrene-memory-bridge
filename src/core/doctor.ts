@@ -151,7 +151,7 @@ export async function runDoctor(workspace: string, config: BridgeConfig): Promis
     name: "semantic-search",
     ok: true,
     severity: "info",
-    message: `Semantic search provider: '${provider}' (dimensions: ${config.semanticSearch.dimensions ?? 128})`
+    message: `Semantic search provider: '${provider}' (dimensions: ${config.semanticSearch.dimensions ?? 256})`
   });
 
   // Check observations backlog

@@ -248,17 +248,18 @@ export async function generateEmbedding(text: string, config: BridgeConfig): Pro
         signal: controller.signal
       });
       clearTimeout(timeoutId);
-      if (res.ok) {
-        const json = (await res.json()) as any;
-        const rawVec: number[] | undefined = json.embedding ?? json.data?.[0]?.embedding;
-        if (Array.isArray(rawVec) && rawVec.length > 0) {
-          const sumSq = rawVec.reduce((acc, v) => acc + v * v, 0);
-          const norm = Math.sqrt(sumSq) || 1;
-          return rawVec.map((v) => v / norm);
-        }
+      if (!res.ok) {
+        return [];
       }
+      const json = (await res.json()) as any;
+      const rawVec: number[] | undefined = json.embedding ?? json.data?.[0]?.embedding;
+      if (Array.isArray(rawVec) && rawVec.length > 0) {
+        const sumSq = rawVec.reduce((acc, v) => acc + v * v, 0);
+        const norm = Math.sqrt(sumSq) || 1;
+        return rawVec.map((v) => v / norm);
+      }
+      return [];
     } catch {
-      // Fallback: Return empty vector on external API failure to prevent vector dimension corruption
       return [];
     }
   }
@@ -284,28 +285,35 @@ export async function generateEmbedding(text: string, config: BridgeConfig): Pro
         signal: controller.signal
       });
       clearTimeout(timeoutId);
-      if (res.ok) {
-        const json = (await res.json()) as any;
-        const rawVec: number[] | undefined = json.data?.[0]?.embedding ?? json.embedding;
-        if (Array.isArray(rawVec) && rawVec.length > 0) {
-          const sumSq = rawVec.reduce((acc, v) => acc + v * v, 0);
-          const norm = Math.sqrt(sumSq) || 1;
-          return rawVec.map((v) => v / norm);
-        }
+      if (!res.ok) {
+        return [];
       }
+      const json = (await res.json()) as any;
+      const rawVec: number[] | undefined = json.data?.[0]?.embedding ?? json.embedding;
+      if (Array.isArray(rawVec) && rawVec.length > 0) {
+        const sumSq = rawVec.reduce((acc, v) => acc + v * v, 0);
+        const norm = Math.sqrt(sumSq) || 1;
+        return rawVec.map((v) => v / norm);
+      }
+      return [];
     } catch {
-      // Fallback: Return empty vector on external API failure to prevent vector dimension corruption
       return [];
     }
   }
 
-  return embedLocalDense(text, dimensions);
+  if (provider === "local") {
+    return embedLocalDense(text, dimensions);
+  }
+
+  return [];
 }
 
 export function cosineSimilarity(a: number[], b: number[]): number {
-  const len = Math.min(a.length, b.length);
+  if (a.length === 0 || b.length === 0 || a.length !== b.length) {
+    return 0;
+  }
   let dot = 0;
-  for (let i = 0; i < len; i += 1) {
+  for (let i = 0; i < a.length; i += 1) {
     dot += a[i]! * b[i]!;
   }
   return dot;
@@ -329,7 +337,7 @@ export async function isSqliteSupported(): Promise<boolean> {
   }
 }
 
-async function openDb(dbPath: string): Promise<SqliteDbLike | null> {
+async function openDb(dbPath: string, config?: BridgeConfig): Promise<SqliteDbLike | null> {
   try {
     const sqliteModule = await import("node:sqlite");
     const DatabaseSyncCtor = (sqliteModule as any).DatabaseSync;
@@ -338,7 +346,7 @@ async function openDb(dbPath: string): Promise<SqliteDbLike | null> {
     }
     const db = new DatabaseSyncCtor(dbPath);
 
-    // Initialize both dense vector table and FTS5 full-text search table
+    // Initialize dense vector table, FTS5 table, and metadata table
     db.exec(`
       CREATE TABLE IF NOT EXISTS docs (
         id TEXT PRIMARY KEY,
@@ -359,6 +367,10 @@ async function openDb(dbPath: string): Promise<SqliteDbLike | null> {
         memory_type,
         tokenize='unicode61'
       );
+      CREATE TABLE IF NOT EXISTS meta (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+      );
     `);
 
     // Schema migration: ensure memory_type exists on older sqlite files
@@ -366,6 +378,34 @@ async function openDb(dbPath: string): Promise<SqliteDbLike | null> {
       db.exec("ALTER TABLE docs ADD COLUMN memory_type TEXT;");
     } catch {
       // Column already exists
+    }
+
+    if (config && config.semanticSearch) {
+      const currentProvider = config.semanticSearch.provider || "local";
+      const currentModel = config.semanticSearch.model || "";
+      const currentDim = String(config.semanticSearch.dimensions || 256);
+
+      try {
+        const rows = db.prepare("SELECT key, value FROM meta").all() as Array<{ key: string; value: string }>;
+        const metaMap = new Map(rows.map((r) => [r.key, r.value]));
+
+        const storedProvider = metaMap.get("provider");
+        const storedModel = metaMap.get("model");
+        const storedDim = metaMap.get("dimensions");
+
+        if (
+          storedProvider !== undefined &&
+          (storedProvider !== currentProvider || storedModel !== currentModel || storedDim !== currentDim)
+        ) {
+          db.exec("DELETE FROM docs; DELETE FROM fts_docs;");
+        }
+
+        db.prepare("INSERT INTO meta (key, value) VALUES ('provider', ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(currentProvider);
+        db.prepare("INSERT INTO meta (key, value) VALUES ('model', ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(currentModel);
+        db.prepare("INSERT INTO meta (key, value) VALUES ('dimensions', ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(currentDim);
+      } catch {
+        // Meta sync warning ignored
+      }
     }
 
     return db;
@@ -378,6 +418,53 @@ export function semanticEnabled(config: BridgeConfig): boolean {
   return Boolean(config.semanticSearch.enabled && config.semanticSearch.provider !== "disabled");
 }
 
+export async function deleteSemanticDocs(
+  workspace: string,
+  config: BridgeConfig,
+  ids: string[]
+): Promise<void> {
+  if (!semanticEnabled(config) || ids.length === 0) {
+    return;
+  }
+  const paths = resolveBridgePaths(path.resolve(workspace));
+  const db = await openDb(paths.vectorDbFile, config);
+  if (!db) {
+    return;
+  }
+  try {
+    for (const id of ids) {
+      db.prepare("DELETE FROM docs WHERE id = ?").run(id);
+      db.prepare("DELETE FROM fts_docs WHERE id = ?").run(id);
+    }
+  } catch {
+    // Ignore errors during delete
+  } finally {
+    db.close();
+  }
+}
+
+export async function getSemanticDocCount(
+  workspace: string,
+  config: BridgeConfig
+): Promise<number> {
+  if (!semanticEnabled(config)) {
+    return 0;
+  }
+  const paths = resolveBridgePaths(path.resolve(workspace));
+  const db = await openDb(paths.vectorDbFile, config);
+  if (!db) {
+    return 0;
+  }
+  try {
+    const rows = db.prepare("SELECT COUNT(*) as count FROM docs").all() as Array<{ count: number }>;
+    return rows[0]?.count ?? 0;
+  } catch {
+    return 0;
+  } finally {
+    db.close();
+  }
+}
+
 export async function upsertSemanticDoc(
   workspace: string,
   config: BridgeConfig,
@@ -387,7 +474,7 @@ export async function upsertSemanticDoc(
     return;
   }
   const paths = resolveBridgePaths(path.resolve(workspace));
-  const db = await openDb(paths.vectorDbFile);
+  const db = await openDb(paths.vectorDbFile, config);
   if (!db) {
     return;
   }
@@ -440,7 +527,7 @@ export async function semanticSearch(
     return [];
   }
   const paths = resolveBridgePaths(path.resolve(workspace));
-  const db = await openDb(paths.vectorDbFile);
+  const db = await openDb(paths.vectorDbFile, config);
   if (!db) {
     return [];
   }
@@ -474,6 +561,7 @@ export async function semanticSearch(
           semantic_score: score
         };
       })
+      .filter((hit) => hit.score > 0)
       .sort((a, b) => b.score - a.score)
       .slice(0, Math.max(1, limit));
   } finally {
@@ -491,7 +579,7 @@ export async function ftsSearch(
     return [];
   }
   const paths = resolveBridgePaths(path.resolve(workspace));
-  const db = await openDb(paths.vectorDbFile);
+  const db = await openDb(paths.vectorDbFile, config);
   if (!db) {
     return [];
   }

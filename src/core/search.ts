@@ -1,7 +1,15 @@
 import { filterActiveDecisions } from "./context.js";
 import type { BridgeConfig, SearchHit } from "../types/events.js";
 import { readDecisionEvents, readHandoff, readProjectContext, readSessionEvents } from "./store.js";
-import { ftsSearch, isSqliteSupported, semanticEnabled, semanticSearch, upsertSemanticDoc } from "./vector.js";
+import {
+  deleteSemanticDocs,
+  ftsSearch,
+  getSemanticDocCount,
+  isSqliteSupported,
+  semanticEnabled,
+  semanticSearch,
+  upsertSemanticDoc
+} from "./vector.js";
 
 export type SearchMode = "text" | "semantic" | "hybrid";
 
@@ -90,7 +98,7 @@ export async function indexSemanticFromState(workspace: string, config: BridgeCo
     });
   }
 
-  const { active: activeDecisions } = filterActiveDecisions(decisionsResult.events);
+  const { active: activeDecisions, superseded: supersededDecisions } = filterActiveDecisions(decisionsResult.events);
   for (const event of activeDecisions) {
     await upsertSemanticDoc(workspace, config, {
       id: `decision:${event.id}`,
@@ -99,6 +107,12 @@ export async function indexSemanticFromState(workspace: string, config: BridgeCo
       ref: `decision:${event.id}`,
       text: [event.title, event.context, event.decision, event.impact, ...event.supersedes].join("\n")
     });
+  }
+
+  // Purge any superseded decisions from SQLite vector and FTS5 tables
+  const supersededIds = Array.from(supersededDecisions.keys()).map((id) => `decision:${id}`);
+  if (supersededIds.length > 0) {
+    await deleteSemanticDocs(workspace, config, supersededIds);
   }
 
   if (handoffResult.text) {
@@ -214,11 +228,12 @@ export async function searchMemory(args: {
     return { hits: lexicalHits, warnings };
   }
 
-  let semanticHits = await semanticSearch(workspace, config, query, limit);
-  if (semanticHits.length === 0) {
+  const docCount = await getSemanticDocCount(workspace, config);
+  if (docCount === 0) {
     await indexSemanticFromState(workspace, config);
-    semanticHits = await semanticSearch(workspace, config, query, limit);
   }
+
+  const semanticHits = await semanticSearch(workspace, config, query, limit);
 
   if (mode === "semantic") {
     if (semanticHits.length === 0) {

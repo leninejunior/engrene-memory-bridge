@@ -47,7 +47,7 @@ flowchart TD
     B --> C["Capture Layer\n(.memory-bridge/observations/ com path exclusion e rotação)"]
     C --> D["Consolidação Dual\n(Zero-LLM determinístico padrão + LLM opcional)"]
     D --> E["Memory Store\n(sessions/*.jsonl, decisions.jsonl, handoff.md, project-context.md)"]
-    E --> F["Motor Híbrido SQLite\n(FTS5 BM25 + Embeddings Densos 192d + Fusão RRF)"]
+    E --> F["Motor Híbrido SQLite\n(FTS5 BM25 + Embeddings Densos 256d + Fusão RRF)"]
     F --> G["Contexto & Handoff\n(memory-bridge resume, handoff build, memory_resume)"]
 ```
 
@@ -417,7 +417,7 @@ Memory Bridge supports 3 search modes powered by SQLite FTS5 and dense vectors:
 # 1. Text Search (SQLite FTS5 BM25 ranking):
 memory-bridge search "mfa guard" --mode text
 
-# 2. Semantic Search (128d dense vectors or external embeddings):
+# 2. Semantic Search (256d dense vectors or external embeddings):
 memory-bridge search "problema de login" --mode semantic
 
 # 3. Hybrid Search (Reciprocal Rank Fusion k=60 combining FTS5 + Semantic + Recency):

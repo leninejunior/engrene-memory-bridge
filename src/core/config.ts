@@ -13,6 +13,8 @@ import {
 } from "./fs-utils.js";
 import { resolveBridgePaths, type BridgePaths } from "./paths.js";
 
+import { DEFAULT_CAPTURE_CONFIG } from "./capture.js";
+
 export interface InitOptions {
   workspace: string;
   enableEncryption?: boolean;
@@ -103,7 +105,9 @@ export async function loadConfig(workspace: string): Promise<ConfigLoadResult> {
             enabled: parsed.capture.enabled ?? false,
             retentionDays: parsed.capture.retentionDays ?? 7,
             maxSessions: parsed.capture.maxSessions ?? 30,
-            exclude: Array.isArray(parsed.capture.exclude) ? parsed.capture.exclude : [".env*", "node_modules/**"]
+            exclude: Array.isArray(parsed.capture.exclude) && parsed.capture.exclude.length > 0
+              ? parsed.capture.exclude
+              : DEFAULT_CAPTURE_CONFIG.exclude
           }
         }
       : {})
@@ -176,8 +180,14 @@ export async function initWorkspace(options: InitOptions): Promise<InitResult> {
     created.push(paths.configFile);
   } else {
     const existing = (await readJsonFile<BridgeConfig>(paths.configFile)) ?? base;
-    const isSemEnabled = existing.semanticSearch?.enabled ?? base.semanticSearch.enabled;
-    const existingProvider = (existing.semanticSearch?.provider || (isSemEnabled ? "local" : "disabled")) as SemanticProvider;
+    const isSemEnabled = options.enableSemanticSearch
+      ? true
+      : (existing.semanticSearch?.enabled ?? base.semanticSearch.enabled);
+    const existingProvider = existing.semanticSearch?.provider;
+    const semProvider: SemanticProvider = options.enableSemanticSearch
+      ? (existingProvider && existingProvider !== "disabled" ? existingProvider : "local")
+      : (existingProvider || (isSemEnabled ? "local" : "disabled"));
+
     const merged: BridgeConfig = {
       ...base,
       ...existing,
@@ -193,7 +203,7 @@ export async function initWorkspace(options: InitOptions): Promise<InitResult> {
       },
       semanticSearch: {
         enabled: isSemEnabled,
-        provider: existingProvider,
+        provider: semProvider,
         dimensions: existing.semanticSearch?.dimensions ?? base.semanticSearch.dimensions,
         ...(existing.semanticSearch?.model ? { model: existing.semanticSearch.model } : {}),
         ...(existing.semanticSearch?.endpoint ? { endpoint: existing.semanticSearch.endpoint } : {}),
