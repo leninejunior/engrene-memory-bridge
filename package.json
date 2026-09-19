@@ -30,9 +30,11 @@
     "mb-cursor": "dist/src/wrappers/mb-cursor.js",
     "mb-dyad": "dist/src/wrappers/mb-dyad.js",
     "mb-gemini": "dist/src/wrappers/mb-gemini.js",
+    "mb-hermes": "dist/src/wrappers/mb-hermes.js",
     "mb-kilo": "dist/src/wrappers/mb-kilo.js",
     "mb-kiro": "dist/src/wrappers/mb-kiro.js",
     "mb-qoder": "dist/src/wrappers/mb-qoder.js",
+    "mb-qwen": "dist/src/wrappers/mb-qwen.js",
     "mb-replit": "dist/src/wrappers/mb-replit.js",
     "mb-trae": "dist/src/wrappers/mb-trae.js",
     "mb-vscode": "dist/src/wrappers/mb-vscode.js"

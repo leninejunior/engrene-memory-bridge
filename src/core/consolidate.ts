@@ -1,8 +1,17 @@
+import fs from "node:fs/promises";
 import path from "node:path";
-import type { BridgeConfig, DecisionEvent } from "../types/events.js";
+
+import type { BridgeConfig, DecisionEvent, ObservationEvent, SessionEvent } from "../types/events.js";
+import { listObservationFiles, readObservations } from "./capture.js";
 import { buildContextSnapshot, renderHandoffMarkdown } from "./context.js";
-import { readDecisionEvents, saveHandoff } from "./store.js";
+import { appendSessionEvent, readDecisionEvents, saveHandoff } from "./store.js";
 import { semanticEnabled, upsertSemanticDoc } from "./vector.js";
+
+export interface ConsolidateOptions {
+  mode?: "deterministic" | "llm";
+  llmProvider?: string;
+  llmModel?: string;
+}
 
 export interface ConsolidateResult {
   ok: boolean;
@@ -10,13 +19,106 @@ export interface ConsolidateResult {
   activeDecisions: number;
   supersededDecisions: number;
   supersededIds: string[];
+  consolidatedSessions: number;
+  observationsProcessed: number;
   handoffRefreshed: boolean;
   warnings: string[];
 }
 
-export async function runConsolidation(workspace: string, config: BridgeConfig): Promise<ConsolidateResult> {
+export async function runConsolidation(
+  workspace: string,
+  config: BridgeConfig,
+  options?: ConsolidateOptions
+): Promise<ConsolidateResult> {
   const normalized = path.resolve(workspace);
-  const { events: decisions, warnings } = await readDecisionEvents(normalized, config, 1000);
+  const warnings: string[] = [];
+
+  // 1. Synthesize pending observations from observations/
+  let consolidatedSessionsCount = 0;
+  let observationsProcessedCount = 0;
+
+  try {
+    const rawEvents = await readObservations(normalized, 50);
+    if (rawEvents.length > 0) {
+      observationsProcessedCount = rawEvents.length;
+
+      // Group observations by sessionId
+      const sessionMap = new Map<string, ObservationEvent[]>();
+      for (const ev of rawEvents) {
+        const sId = ev.sessionId || "default";
+        const list = sessionMap.get(sId) || [];
+        list.push(ev);
+        sessionMap.set(sId, list);
+      }
+
+      for (const [sessionId, obsList] of sessionMap.entries()) {
+        let intent = "Executed session tasks";
+        const actions: string[] = [];
+        const artifacts: string[] = [];
+        const detectedRisks: string[] = [];
+        let tool = "ai";
+        let latestTs = new Date().toISOString();
+
+        for (const obs of obsList) {
+          latestTs = obs.ts || latestTs;
+          tool = obs.tool || tool;
+
+          if (obs.type === "user_prompt") {
+            const prompt = String(obs.payload?.prompt ?? obs.payload?.intent ?? "").trim();
+            if (prompt) {
+              intent = prompt.slice(0, 120);
+            }
+          } else if (obs.type === "tool_call") {
+            const toolName = String(obs.payload?.tool ?? "action");
+            const filePath = String(obs.payload?.path ?? obs.payload?.file ?? "");
+            actions.push(`Executed ${toolName}`);
+            if (filePath && !artifacts.includes(filePath)) {
+              artifacts.push(filePath);
+            }
+          } else if (obs.type === "tool_result") {
+            const resultStr = JSON.stringify(obs.payload || "");
+            if (/error|fail|exception|crash/i.test(resultStr)) {
+              detectedRisks.push(`Potential failure in session ${sessionId}`);
+            }
+          }
+        }
+
+        const distinctActions = Array.from(new Set(actions)).slice(0, 8);
+        const distinctArtifacts = Array.from(new Set(artifacts)).slice(0, 8);
+
+        const syntheticSession: SessionEvent = {
+          ts: latestTs,
+          tool,
+          workspace: normalized,
+          branch: "main",
+          intent,
+          actions: distinctActions.length > 0 ? distinctActions : ["completed observation tasks"],
+          artifacts: distinctArtifacts,
+          summary: `Synthesized from ${obsList.length} observations (session: ${sessionId})`,
+          tags: ["consolidated", "auto-capture"]
+        };
+
+        await appendSessionEvent(normalized, config, syntheticSession);
+        consolidatedSessionsCount += 1;
+      }
+
+      // Cleanup processed observation files
+      const files = await listObservationFiles(normalized);
+      for (const file of files) {
+        try {
+          await fs.unlink(file);
+        } catch {
+          // Ignore removal error
+        }
+      }
+    }
+  } catch (err) {
+    warnings.push(`Observation consolidation warning: ${err instanceof Error ? err.message : String(err)}`);
+  }
+
+  // 2. Read decisions and deduplicate superseded
+  const { events: decisions, warnings: decWarnings } = await readDecisionEvents(normalized, config, 1000);
+  warnings.push(...decWarnings);
 
   const supersededSet = new Set<string>();
   for (const dec of decisions) {
@@ -36,7 +138,7 @@ export async function runConsolidation(workspace: string, config: BridgeConfig):
     }
   }
 
-  // Refresh and build consolidated handoff
+  // 3. Refresh and build consolidated handoff
   const context = await buildContextSnapshot(normalized, config);
   const recentArtifacts = context.sessions
     .slice(-8)
@@ -59,7 +161,8 @@ export async function runConsolidation(workspace: string, config: BridgeConfig):
       source: "handoff",
       ts: new Date().toISOString(),
       ref: "handoff.md",
-      text: markdown
+      text: markdown,
+      memory_type: "working"
     });
   }
 
@@ -69,6 +172,8 @@ export async function runConsolidation(workspace: string, config: BridgeConfig):
     activeDecisions: activeDecisionsList.length,
     supersededDecisions: supersededIds.length,
     supersededIds,
+    consolidatedSessions: consolidatedSessionsCount,
+    observationsProcessed: observationsProcessedCount,
     handoffRefreshed: true,
     warnings
   };

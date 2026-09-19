@@ -185,6 +185,7 @@ export function renderHandoffMarkdown(input: {
   pending: string[];
   nextSteps: string[];
   recentArtifacts: string[];
+  risks?: string[];
 }): string {
   const decisions =
     input.recentDecisions.length === 0
@@ -197,5 +198,28 @@ export function renderHandoffMarkdown(input: {
       ? "- N/A"
       : input.recentArtifacts.map((item) => `- ${item}`).join("\n");
 
-  return `# Handoff\n\n## Objective\n${input.objective}\n\n## Recent Decisions\n${decisions}\n\n## Pending\n${pending}\n\n## Next Steps\n${next}\n\n## Recent Artifacts\n${artifacts}\n`;
+  const sections = [
+    `# Handoff`,
+    ``,
+    `## Objective`,
+    input.objective,
+    ``,
+    `## Recent Decisions`,
+    decisions,
+    ``,
+    `## Pending`,
+    pending,
+    ``,
+    `## Next Steps`,
+    next,
+    ``,
+    `## Recent Artifacts`,
+    artifacts
+  ];
+
+  if (input.risks && input.risks.length > 0) {
+    sections.push(``, `## Risks & Warnings`, input.risks.map((r) => `- ${r}`).join("\n"));
+  }
+
+  return sections.join("\n").trimEnd() + "\n";
 }

@@ -124,5 +124,73 @@ export async function runDoctor(workspace: string, config: BridgeConfig): Promis
     });
   }
 
+  // Check SQLite FTS5 capability
+  try {
+    const { DatabaseSync } = await import("node:sqlite");
+    const testDb = new DatabaseSync(":memory:");
+    testDb.exec("CREATE VIRTUAL TABLE test_fts USING fts5(content);");
+    testDb.close();
+    addCheck(result, {
+      name: "sqlite-fts5",
+      ok: true,
+      severity: "info",
+      message: "SQLite FTS5 full-text search engine available natively."
+    });
+  } catch (err) {
+    addCheck(result, {
+      name: "sqlite-fts5",
+      ok: false,
+      severity: "warn",
+      message: `SQLite FTS5 engine unavailable: ${err instanceof Error ? err.message : String(err)}`
+    });
+  }
+
+  // Check semantic search status
+  const provider = config.semanticSearch.provider ?? (config.semanticSearch.enabled ? "local" : "disabled");
+  addCheck(result, {
+    name: "semantic-search",
+    ok: true,
+    severity: "info",
+    message: `Semantic search provider: '${provider}' (dimensions: ${config.semanticSearch.dimensions ?? 128})`
+  });
+
+  // Check observations backlog
+  const obsDir = paths.observationsDir;
+  try {
+    const stat = await fs.stat(obsDir);
+    if (stat.isDirectory()) {
+      const entries = await fs.readdir(obsDir);
+      const obsCount = entries.filter((e) => e.endsWith(".jsonl")).length;
+      addCheck(result, {
+        name: "observations-backlog",
+        ok: obsCount < 50,
+        severity: obsCount >= 50 ? "warn" : "info",
+        message:
+          obsCount >= 50
+            ? `${obsCount} pending observation sessions found. Run 'memory-bridge consolidate' to synthesize them.`
+            : `${obsCount} pending observation sessions.`
+      });
+    }
+  } catch {
+    // observations directory does not exist yet; ok
+  }
+
+  // Check stale lockfile
+  const lockFile = path.join(paths.root, ".lock");
+  try {
+    const lockStat = await fs.stat(lockFile);
+    const lockAgeMin = (Date.now() - lockStat.mtimeMs) / (1000 * 60);
+    if (lockAgeMin > 10) {
+      addCheck(result, {
+        name: "stale-lockfile",
+        ok: false,
+        severity: "warn",
+        message: `Stale lockfile detected at ${lockFile} (${lockAgeMin.toFixed(0)} minutes old). Verify no active writers and remove.`
+      });
+    }
+  } catch {
+    // No lockfile; clean
+  }
+
   return result;
 }

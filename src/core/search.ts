@@ -215,31 +215,61 @@ export async function searchMemory(args: {
     return { hits: semanticHits, warnings };
   }
 
-  // Hybrid Mode: Combine BM25 Text + Semantic Vector
-  const combinedMap = new Map<string, SearchHit>();
-  const maxTextScore = Math.max(...sortedTextHits.map((h) => h.score), 1);
-  const maxSemScore = Math.max(...semanticHits.map((h) => h.score), 1);
+  // Hybrid Mode: Reciprocal Rank Fusion (RRF) combining Text (BM25) + Real Semantic Vectors + Recency
+  const hybridHits = rrfFusion(sortedTextHits, semanticHits, 60, limit);
+  return { hits: hybridHits.length > 0 ? hybridHits : sortedTextHits, warnings };
+}
 
-  for (const hit of sortedTextHits) {
-    const key = hit.ref || hit.snippet;
-    const norm = hit.score / maxTextScore;
-    combinedMap.set(key, { ...hit, score: norm * 0.5 });
-  }
+export function rrfFusion(
+  textHits: SearchHit[],
+  semanticHits: SearchHit[],
+  k = 60,
+  limit = 10
+): SearchHit[] {
+  const scoreMap = new Map<string, { hit: SearchHit; rrfScore: number }>();
 
-  for (const hit of semanticHits) {
+  textHits.forEach((hit, idx) => {
     const key = hit.ref || hit.snippet;
-    const norm = hit.score / maxSemScore;
-    const existing = combinedMap.get(key);
-    if (existing) {
-      existing.score += norm * 0.5;
-    } else {
-      combinedMap.set(key, { ...hit, score: norm * 0.5 });
+    const rank = idx + 1;
+    const item = scoreMap.get(key) || { hit: { ...hit }, rrfScore: 0 };
+    item.rrfScore += 1 / (k + rank);
+    item.hit.text_score = hit.score;
+    scoreMap.set(key, item);
+  });
+
+  semanticHits.forEach((hit, idx) => {
+    const key = hit.ref || hit.snippet;
+    const rank = idx + 1;
+    const item = scoreMap.get(key) || { hit: { ...hit }, rrfScore: 0 };
+    item.rrfScore += 1 / (k + rank);
+    item.hit.semantic_score = hit.score;
+    if (hit.ts && !item.hit.ts) {
+      item.hit.ts = hit.ts;
     }
-  }
+    scoreMap.set(key, item);
+  });
 
-  const hybridHits = Array.from(combinedMap.values())
+  const now = Date.now();
+  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
+  return Array.from(scoreMap.values())
+    .map(({ hit, rrfScore }) => {
+      let recencyBoost = 0;
+      if (hit.ts) {
+        const itemTime = new Date(hit.ts).getTime();
+        if (!isNaN(itemTime)) {
+          const age = Math.max(0, now - itemTime);
+          if (age < SEVEN_DAYS_MS) {
+            recencyBoost = (1 - age / SEVEN_DAYS_MS) * 0.005;
+          }
+        }
+      }
+      return {
+        ...hit,
+        score: rrfScore + recencyBoost,
+        recency_score: recencyBoost
+      };
+    })
     .sort((a, b) => b.score - a.score)
     .slice(0, Math.max(1, limit));
-
-  return { hits: hybridHits.length > 0 ? hybridHits : sortedTextHits, warnings };
 }

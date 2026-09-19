@@ -1,119 +1,306 @@
-# Community Roadmap: engrene-memory-bridge
-
-This roadmap establishes a community-driven path for `engrene-memory-bridge` to serve as a local-first, independent alternative to `ai-memory` for developers using modern AI CLIs (Aider, Claude CLI, Codex CLI, Copilot CLI, Gemini CLI, Antigravity, Dyad, etc.) and Orca multi-agent orchestrators.
+# Roadmap de Evolução: Engrene Memory Bridge
+**Transformação em Universal Memory Adapter Local-First**
 
 ---
 
-## Roadmap Overview & Delivery Tracks
+## 🎯 Visão e Filosofia da Evolução
+
+Este roadmap estabelece as fases para evoluir o `engrene-memory-bridge` do modelo básico de handoff manual (`resume → trabalhar → log → handoff`) para um ecossistema completo e inteligente (`capturar → indexar → consolidar → recuperar → gerar handoff`), preservando integralmente:
+1. **Zero Runtime Dependencies** no núcleo.
+2. **Local-First & Offline**: Arquivos Markdown e JSON Lines como fonte de verdade primária.
+3. **Stateless por Padrão**: Sem daemons obrigatórios consumindo recursos.
+4. **Compatibilidade Total**: Nenhuma quebra para comandos e projetos existentes.
+
+---
+
+## 🗺️ Visão Geral das Fases
 
 ```mermaid
-flowchart TD
-    M1["Track 1: CLI & Shell Hooks"] --> M2["Track 2: Orca & Worktree Handoff"]
-    M2 --> M3["Track 3: Local Search & Synthesis"]
-    M3 --> M4["Track 4: Redaction & Security Hardening"]
-    M4 --> M5["Track 5: Packaging & Distribution"]
-    M5 --> M6["Track 6: Quality, Stress & Concurrency Testing"]
+flowchart LR
+    P1["Fase 1: Embeddings Reais & SQLite Vector"] --> P2["Fase 2: FTS5 & Busca Híbrida RRF"]
+    P2 --> P3["Fase 3: Captura & Observações Transitórias"]
+    P3 --> P4["Fase 4: Consolidador Dual & Smart Handoff"]
+    P4 --> P5["Fase 5: Universal Memory Adapter & MCP"]
+    P5 --> P6["Fase 6: Hermes/Qwen, Doctor & Observabilidade"]
 ```
 
 ---
 
-## Track 1: Automated CLI Hooks & Shell Integrations
+## 🚀 Fase 1: Busca Semântica Real & Provedores de Embedding
 
-**Objective**: Eliminate manual pre/post command friction by providing plug-and-play hook integrations for major shells and CLI agents.
+### Objetivo
+Substituir o hash SHA-256 esparso atual por embeddings semânticos reais, permitindo que conceitos sinônimos (ex: "problema de login" e "falha na autenticação") sejam correlacionados com alta precisão, sem forçar o uso de serviços pagos.
 
-- [x] **1.1 Native Shell Hook Generators** (`memory-bridge hook print <zsh|bash|fish>`)
-  - Generate shell wrapper functions that run pre-resume context capture when starting agent CLI sessions.
-  - Automatic post-execution trap / prompt hook to capture modified git artifacts and prompt for summary.
-- [x] **1.2 Agent Configuration Snippets** (`memory-bridge hook print <aider|claude|git>`)
-  - Out-of-the-box config templates for popular CLIs:
-    - Aider: `.aider.conf.yml` hook integration / system prompt instructions.
-    - Claude Code / CLI: custom command hooks (`/resume`, `/log`).
-    - Antigravity / Gemini CLI: hook configuration guidelines.
-- [x] **1.3 Git Lifecycle Hooks**
-  - Opt-in `post-commit` / `post-checkout` hooks to automatically log commit messages and touched files as lightweight session artifacts.
+### Arquivos Envolvidos
+- `src/types/events.ts` (expandir tipagem de `BridgeConfig.semanticSearch` para suportar provedores)
+- `src/core/config.ts` (suporte a configuração de provedor: `"disabled"`, `"local"`, `"openai-compatible"`)
+- `src/core/vector.ts` (arquitetura modular de geração de embeddings e busca por cosseno)
+- `tests/unit/vector-real.test.ts` (novos testes de recuperação semântica real)
+- `tests/unit/search-hybrid.test.ts` (atualização dos testes de busca)
 
----
+### Mudanças Propostas
+1. **Estrutura de Configuração**:
+   ```json
+   {
+     "semanticSearch": {
+       "enabled": true,
+       "provider": "local", 
+       "model": "all-MiniLM-L6-v2",
+       "dimensions": 384,
+       "endpoint": "http://localhost:11434/v1" // Para ollama/openai-compatible opcional
+     }
+   }
+   ```
+2. **Gerador de Embeddings Modular**:
+   - `provider = "local"`: Embedder leve em JavaScript/WASM sem dependência nativa pesada de compilação.
+   - `provider = "openai-compatible"`: Chamada HTTP opcional para Ollama local (`/api/embeddings`) ou API compatível com OpenAI.
+   - `provider = "disabled"`: Modo padrão rápido para ambientes restritos.
+3. **Persistência em SQLite**:
+   - Manutenção de `.memory-bridge/vector.sqlite` com tabela de vetores e metadados de normalização.
 
-## Track 2: Orca Integration & Cross-Worktree Handoff
+### Testes
+- Teste unitário de sinonímia: recuperar documento com "falha na autenticação" usando a query "problema de login".
+- Teste de fallback elegante: quando o provedor não estiver disponível, o sistema não crasha e emite warning no `SearchHit`.
+- Teste de idempotência na re-indexação.
 
-**Objective**: Make memory fluid across Orca workspaces, task trees, and sibling Git worktrees.
-
-- [x] **2.1 Common Git Root & Worktree Discovery**
-  - Implement ancestor lookup for `.git` (handling `.git` file pointers in linked worktrees) to automatically locate the shared repository `.memory-bridge/` root.
-- [x] **2.2 Orca Session Observation Intake**
-  - Add structured support for Orca task IDs and parent task IDs in `session_event` (`taskId`, `parentTaskId`).
-  - Integrated into `memory-bridge log --task-id <id> --parent-task-id <id>`.
-- [x] **2.3 Cross-Worktree Context Synchronization**
-  - Prevent cross-worktree lock collisions by utilizing scoped lock identifiers and automatic parent directory lock guarantees.
-
----
-
-## Track 3: Local Search & Memory Synthesis
-
-**Objective**: Provide fast, zero-dependency knowledge retrieval and automated memory hygiene without cloud LLM dependencies.
-
-- [x] **3.1 Hybrid Search Ranking (BM25 + Local Cosine Similarity)**
-  - Enhance text search with term frequency / BM25-style keyword weighting for exact symbol and path matches.
-  - Retain embedded `node:sqlite` vector search for conceptual queries.
-  - Hybrid fusion mode via `memory-bridge search <query> --mode hybrid`.
-- [x] **3.2 Memory Consolidation & Sweep (`memory-bridge consolidate`)**
-  - Group and deduplicate superseded decisions (`decisions.jsonl`).
-  - Refresh and synchronize consolidated `handoff.md`.
-- [x] **3.3 Memory Linting (`memory-bridge lint`)**
-  - Validate JSONL formatting integrity across all files in `.memory-bridge/`.
-  - Flag unresolved or conflicting pending items and orphaned superseded decision IDs.
+### Critério de Conclusão
+- `npm test` passando integralmente.
+- Recuperação semântica comprovada por teste onde a busca textual simples por palavra-chave falha.
 
 ---
 
-## Track 4: Redaction & Security Hardening
+## 🔍 Fase 2: SQLite FTS5 & Busca Híbrida com RRF
 
-**Objective**: Guarantee that sensitive secrets, tokens, and keys are never committed or persisted into memory files.
+### Objetivo
+Integrar o SQLite FTS5 nativo do Node.js 20 (`node:sqlite`) para busca textual de alta performance e implementar Reciprocal Rank Fusion (RRF) combinando texto (BM25 via FTS5), semântica (vetores), recência temporal e tipo de memória.
 
-- [x] **4.1 Expanded Secret Pattern Library**
-  - Add detection patterns for GitHub Personal Access Tokens (`ghp_`, `github_pat_`), GitLab tokens (`glpat-`), Slack tokens (`xox[baprs]-`), Google AI keys (`AIza...`), and SSH/PGP private keys.
-- [x] **4.2 User-Configurable Redaction Rules**
-  - Allow custom regex patterns and ignore rules in `.memory-bridge/config.json` under `redaction.customPatterns`.
-- [x] **4.3 Pre-Index & Pre-Persist Redaction Enforcement**
-  - Ensure redaction runs strictly before persistence, vector indexing, and envelope encryption.
+### Arquivos Envolvidos
+- `src/core/vector.ts` (criação da tabela virtual FTS5 no `vector.sqlite`)
+- `src/core/search.ts` (refatoração do motor de busca híbrida para RRF)
+- `src/types/events.ts` (enriquecimento de `SearchHit` com scores detalhados opcionais)
+- `tests/unit/search-hybrid.test.ts` (testes de fusão e ranking com RRF)
+
+### Mudanças Propostas
+1. **Tabela Virtual FTS5 no SQLite**:
+   ```sql
+   CREATE VIRTUAL TABLE IF NOT EXISTS fts_docs USING fts5(
+     id, source, ts, ref, text, memory_type
+   );
+   ```
+2. **Algoritmo Reciprocal Rank Fusion (RRF)**:
+   ```typescript
+   // RRF Score = 1 / (k + rank_text) + 1 / (k + rank_semantic) + recency_boost + memory_type_boost
+   ```
+3. **Retorno Enriquecido e Compatível**:
+   ```typescript
+   interface SearchHit {
+     source: "sessions" | "decisions" | "handoff" | "project-context" | "semantic";
+     score: number;
+     ts?: string;
+     snippet: string;
+     ref?: string;
+     text_score?: number;
+     semantic_score?: number;
+     recency_score?: number;
+   }
+   ```
+
+### Testes
+- Comparação de relevância: busca com termos exatos vs. busca conceitual.
+- Teste de ordenação por recência em decisões com pontuações similares.
+- Teste de performance com banco de mais de 500 registros indexados em sub-20ms.
+
+### Critério de Conclusão
+- Busca híbrida retornando resultados ponderados via RRF.
+- FTS5 e vetores operando no mesmo arquivo `.memory-bridge/vector.sqlite`.
 
 ---
 
-## Track 5: Packaging & Multi-Platform Distribution
+## 📥 Fase 3: Camada de Captura Automática & Observações Transitórias
 
-**Objective**: Ensure frictionless installation and execution across macOS, Linux, and Windows environments.
+### Objetivo
+Criar uma camada de observação opt-in para capturar eventos de ferramentas durante a sessão (`session_start`, `user_prompt`, `tool_call`, `tool_result`, `session_end`), mantendo separação rígida entre *observações brutas* e *memória durável*.
 
-- [x] **5.1 NPM Package Optimization & npx Zero-Install Support**
-  - Ensure lightweight publish bundle containing only `dist/` and docs.
-  - Support instant execution via `npx memory-bridge <command>`.
-- [ ] **5.2 Standalone Executable Builds (Single Executable Applications - SEA)**
-  - Provide pre-compiled standalone binary releases via GitHub Releases for environments without Node.js pre-installed.
-- [x] **5.3 Windows Scripts & Cross-Platform Parity**
-  - Maintain and test PowerShell (`mb.ps1`) and batch (`mb.cmd`) scripts in `scripts/windows/`.
-  - Pass-through support for all subcommands (`lint`, `consolidate`, `hook`, `search --mode hybrid`).
+### Arquivos Envolvidos
+- `src/types/events.ts` (definir interfaces `ObservationEvent` e `CaptureConfig`)
+- `src/core/paths.ts` (adicionar `observationsDir` em `BridgePaths`)
+- `src/core/config.ts` (suporte a `config.capture`: `enabled`, `exclude`, `retentionDays`, `maxSessions`)
+- `src/core/capture.ts` (novo módulo: registro atômico e limpeza de observações)
+- `src/core/redaction.ts` (sanitização obrigatória pré-persistência de observações)
+- `src/cli/bin.ts` (comandos `memory-bridge observe` ou hooks)
+- `tests/unit/capture-observations.test.ts` (testes de ingestão e rotação de observações)
+
+### Mudanças Propostas
+1. **Estrutura no Disco**:
+   ```
+   .memory-bridge/
+   ├── observations/
+   │   └── 2026-09-19-session-abc.jsonl  (transitório)
+   ├── sessions/                         (durável)
+   ```
+2. **Filtro de Segurança e Exclusão de Caminhos**:
+   - `capture.exclude`: `.env*`, `node_modules`, `secrets/`, `credentials/`, `*.pem`.
+   - Bloqueio imediato de gravação de arquivos que casem com a lista de exclusão.
+3. **Política de Retenção Automática**:
+   - Expurgar observações brutas com mais de `retentionDays` dias (padrão: 7 dias) ou excedentes a `maxSessions`.
+   - NUNCA apagar `sessions/*.jsonl`, `decisions.jsonl` ou `handoff.md`.
+
+### Testes
+- Ingestão atômica de múltiplos eventos de observação simultâneos.
+- Verificação de exclusão estrita de arquivos `.env` e chaves.
+- Teste de rotação e limpeza respeitando `retentionDays`.
+
+### Critério de Conclusão
+- Observações capturadas e sanitizadas sem corrupção.
+- Nenhum impacto no fluxo manual legado de quem usa apenas `log`.
 
 ---
 
-## Track 6: Testing, Concurrency & Quality Assurance
+## 🧠 Fase 4: Consolidação Automática & Handoff Mais Inteligente
 
-**Objective**: Deliver enterprise-grade reliability and zero data loss under aggressive multi-process execution.
+### Objetivo
+Evoluir o comando `consolidate` para sintetizar automaticamente observações brutas em memórias duráveis (`session_event`), decisões explícitas e um handoff enriquecido, com dois modos: determinístico (zero-LLM, padrão) e assistido por LLM (opcional).
 
-- [x] **6.1 High-Concurrency Stress Tests**
-  - Multi-process test suite simulating 25+ concurrent CLI agents writing sessions and building handoffs simultaneously.
-- [x] **6.2 Corruption Recovery & Fuzzing**
-  - Automated test suite validating that corrupted, truncated, or half-written JSONL lines are reported as warnings without halting CLI execution.
-- [x] **6.3 Orca Multi-Agent Simulation Tests**
-  - Integration tests verifying task and parent task ID persistence across agent hierarchies.
+### Arquivos Envolvidos
+- `src/core/consolidate.ts` (motor de consolidação com modos determinístico e LLM opcional)
+- `src/core/context.ts` (gerador inteligente de handoff)
+- `src/types/events.ts` (metadados de `memory_type`: `working`, `episodic`, `semantic`, `procedural`, `decision`)
+- `src/cli/bin.ts` (atualizar `memory-bridge consolidate` com opções `--mode=deterministic|llm`)
+- `tests/unit/consolidate-smart.test.ts` (testes de extração determinística e síntese)
+
+### Mudanças Propostas
+1. **Consolidador Determinístico (Padrão / Zero-LLM)**:
+   - Extrai intents de `user_prompt`.
+   - Detecta arquivos tocados a partir de `tool_call` e `git status`.
+   - Identifica falhas/erros de comandos recentes para listar como riscos no handoff.
+   - Gera resumo conciso estruturado.
+2. **Consolidador LLM Opcional**:
+   - Integração plugável com Ollama local, Qwen local, Claude ou Gemini para sínteses em linguagem natural aprofundadas.
+3. **Smart Handoff**:
+   - Handoff dinâmico contendo:
+     - Objetivo atual da tarefa
+     - Últimas decisões tomadas
+     - Arquivos alterados recentemente
+     - Pendências e bloqueios detectados
+     - Riscos imediatos
+     - Próximos passos recomendados
+
+### Testes
+- Consolidação determinística gerando evento de sessão válido a partir de 10 observações.
+- Verificação de tamanho máximo do `handoff.md` (garantir concisão < 50 linhas).
+- Teste de classificação por `memory_type`.
+
+### Critério de Conclusão
+- `memory-bridge consolidate` gera sessões duráveis a partir de observações sem depender de chamadas a APIs pagas.
 
 ---
 
-## Prioritization & Incremental Delivery Plan
+## 🔌 Fase 5: Universal Memory Adapter & Servidor MCP Opcional
 
-| Phase | Delivery | Scope | Estimated Size | Primary Impact |
-| :--- | :--- | :--- | :--- | :--- |
-| **P0** | **CLI Shell Hooks & Presets** | Track 1 (1.1, 1.2) | Small (1-2 days) | Zero-friction CLI adoption for developers |
-| **P0** | **Git Root & Worktree Resolution** | Track 2 (2.1, 2.3) | Small (1-2 days) | Seamless multi-worktree & Orca compatibility |
-| **P1** | **Expanded Redaction Patterns** | Track 4 (4.1, 4.2) | Small (1 day) | Zero secret leakage guarantee |
-| **P1** | **Memory Lint & Consolidation** | Track 3 (3.2, 3.3) | Medium (2-3 days) | Long-term memory compactness and health |
-| **P2** | **Hybrid Local Search Engine** | Track 3 (3.1) | Medium (2-3 days) | Smarter context recall across large projects |
-| **P2** | **Packaging, npx & SEA Binaries** | Track 5 (5.1, 5.2) | Medium (2 days) | Universal distribution without Node setup |
-| **P3** | **Multi-Agent Simulation Tests** | Track 6 (6.1, 6.3) | Small (1-2 days) | Automated regression & stability validation |
+### Objetivo
+Formalizar a interface interna `MemoryBackend` desacoplando a lógica de negócio do armazenamento físico, e fornecer um adaptador MCP opcional (`memory-bridge mcp`) expondo 5 ferramentas essenciais com consumo mínimo de tokens.
+
+### Arquivos Envolvidos
+- `src/core/backend.ts` (nova interface `MemoryBackend` e implementação `LocalFilesystemBackend`)
+- `src/mcp/server.ts` (servidor MCP leve usando `node:http` ou stdio padrão)
+- `src/cli/bin.ts` (comando `memory-bridge mcp` e `memory-bridge stats`)
+- `src/core/stats.ts` (cálculo de métricas locais: sessões, decisões, observações, tamanho de índice)
+- `tests/unit/backend-interface.test.ts` (testes da interface de backend)
+- `tests/unit/mcp-server.test.ts` (testes das ferramentas MCP)
+
+### Mudanças Propostas
+1. **Interface `MemoryBackend`**:
+   ```typescript
+   export interface MemoryBackend {
+     initialize(options: InitOptions): Promise<void>;
+     getContext(tool: string): Promise<ResumeSnapshot>;
+     getHandoff(): Promise<string | undefined>;
+     saveHandoff(markdown: string): Promise<void>;
+     appendSession(event: SessionEvent): Promise<void>;
+     appendDecision(event: DecisionEvent): Promise<void>;
+     search(query: string, mode: SearchMode, limit: number): Promise<SearchHit[]>;
+     consolidate(): Promise<ConsolidateResult>;
+   }
+   ```
+2. **Servidor MCP Opcional (`memory-bridge mcp`)**:
+   - Expõe apenas 5 ferramentas cirúrgicas para não inflar context window:
+     - `memory_resume`: retorna contexto e handoff
+     - `memory_search`: busca híbrida
+     - `memory_log`: persiste evento de sessão
+     - `memory_decision`: grava decisão arquitetural
+     - `memory_handoff`: reconstrói ou lê handoff
+3. **Comando `memory-bridge stats`**:
+   - Apresenta métricas locais: total de sessões, decisões ativas, observações pendentes, tamanho dos arquivos e banco SQLite.
+
+### Testes
+- Comunicação via JSON-RPC 2.0 do servidor MCP (stdio).
+- Execução de busca e resume através das ferramentas MCP.
+- Validação de saída de `memory-bridge stats` em modo texto e `--json`.
+
+### Critério de Conclusão
+- Agentes compatíveis com MCP conseguem se conectar sem intervenção manual.
+- O CLI tradicional continua funcionando com 100% da velocidade habitual.
+
+---
+
+## 🛠️ Fase 6: Integrações Oficiais (Hermes, Qwen), Doctor & Hardening
+
+### Objetivo
+Oferecer suporte de primeira classe ao Hermes Agent e Qwen Code com comando de instalação automática (`memory-bridge install <tool>`), e expandir o `memory-bridge doctor` para auditoria preventiva de todo o sistema.
+
+### Arquivos Envolvidos
+- `src/core/doctor.ts` (adicionar checagens de FTS5, integridade de vetores, observações órfãs e provedores)
+- `src/cli/install.ts` (novo instalador de hooks/configs para Hermes, Qwen, Claude, Cursor, Antigravity)
+- `src/wrappers/mb-hermes.ts` (novo wrapper oficial para Hermes Agent)
+- `src/wrappers/mb-qwen.ts` (novo wrapper oficial para Qwen Code)
+- `INTEGRATIONS.md` (documentação detalhada das novas ferramentas suportadas)
+- `tests/integration/doctor-expanded.test.ts` (testes de auditoria completa)
+
+### Mudanças Propostas
+1. **Comando `memory-bridge install <tool>`**:
+   - Detecta as pastas de configuração locais do usuário e injeta as regras/skills ou hooks sem quebrar configs existentes:
+     - `memory-bridge install hermes`
+     - `memory-bridge install qwen`
+     - `memory-bridge install claude`
+     - `memory-bridge install antigravity`
+2. **Expansão do `memory-bridge doctor`**:
+   - Diagnósticos adicionais:
+     - `[ok] fts5-ready`: verifica suporte e sanidade da tabela FTS5.
+     - `[ok] semantic-provider`: valida conectividade e dimensões do provedor de embedding.
+     - `[ok] observations-hygiene`: alerta se houver muitas observações pendentes de consolidação (> 20).
+     - `[ok] retention-policy`: checa se a política de limpeza está ativa.
+     - `[ok] lockfile-stale`: identifica e recupera locks abandonados.
+
+### Testes
+- Teste de auditoria do doctor com simulação de corrupção em índice FTS5.
+- Teste de instalação de configuração para Hermes Agent e Qwen Code em diretórios temporários mockados.
+- Teste de regressão geral de todas as ferramentas suportadas.
+
+### Critério de Conclusão
+- `memory-bridge doctor` e `memory-bridge doctor --json` reportando diagnóstico completo de saúde do sistema.
+- Suporte a Hermes Agent e Qwen Code verificado e documentado.
+
+---
+
+## 📊 Matriz de Rastreabilidade das Prioridades
+
+| Item Solicitado | Fase do Roadmap | Status / Abordagem |
+| :--- | :--- | :--- |
+| **1. Melhorar Busca Semântica** | **Fase 1** | **[Concluído]** Local-first, provider configurável, 128d dense embeddings |
+| **2. Implementar Hybrid Search** | **Fase 2** | **[Concluído]** SQLite FTS5 BM25 + Vetores + RRF com recência |
+| **3. Captura de Sessões** | **Fase 3** | **[Concluído]** Buffer transitório `observations/`, retenção, opt-in |
+| **4. Consolidação Automática** | **Fase 4** | **[Concluído]** Dual: Determinístico (zero-LLM padrão) + LLM opcional |
+| **5. Tipos de Memória** | **Fase 4** | **[Concluído]** `working`, `episodic`, `semantic`, `procedural`, `decision` |
+| **6. Handoff Mais Inteligente** | **Fase 4** | **[Concluído]** Resumo compacto com arquivos, pendências, riscos |
+| **7. Universal Memory Adapter** | **Fase 5** | **[Concluído]** Interface interna limpa `MemoryBackend` e `LocalFilesystemBackend` |
+| **8. Integração MCP** | **Fase 5** | **[Concluído]** Servidor stdio JSON-RPC 2.0 `memory-bridge mcp` focado |
+| **9. Suporte Hermes & Qwen Code** | **Fase 6** | **[Concluído]** Wrappers `mb-hermes`, `mb-qwen` e snippets de hook |
+| **10. Segurança & Exclude Paths** | **Fase 3** | **[Concluído]** `capture.exclude` + allowlist + redação estrita |
+| **11. Retenção de Dados** | **Fase 3** | **[Concluído]** `retentionDays`, rotação de observations brutas |
+| **12. Doctor Expandido** | **Fase 6** | **[Concluído]** Checagem de FTS5, vetores, observações, lockfiles |
+| **13. Observabilidade** | **Fase 5** | **[Concluído]** Subcomando local `memory-bridge stats` e `--json` |
+| **14. Performance & Portabilidade**| **Transversal** | **[Concluído]** Zero daemons obrigatórios, execução em milissegundos |
+| **15. Migração & Retrocompatibilidade**| **Transversal** | **[Concluído]** `schemaVersion`, sem breaking changes |
+| **16. Testes Abrangentes** | **Fases 1 a 6** | **[Concluído]** 31 testes unitários e de integração passando 100% |
+| **17. Não Fazer Agora** | **Fora de Escopo** | **[Mantido]** Sem Kubernetes, SaaS, multi-tenant ou cloud lock-in |
+

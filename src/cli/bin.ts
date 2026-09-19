@@ -15,8 +15,11 @@ import { searchMemory, type SearchMode } from "../core/search.js";
 import { appendDecisionEvent, appendSessionEvent, saveHandoff } from "../core/store.js";
 import { redactUnknown } from "../core/redaction.js";
 import { semanticEnabled, upsertSemanticDoc } from "../core/vector.js";
+import { appendObservation } from "../core/capture.js";
+import { getMemoryStats } from "../core/stats.js";
+import { startMcpServer } from "../mcp/server.js";
 import { startUiServer } from "../ui/server.js";
-import type { DecisionEvent, SessionEvent } from "../types/events.js";
+import type { DecisionEvent, ObservationEvent, ObservationType, SessionEvent } from "../types/events.js";
 
 function usage(): string {
   return `memory-bridge
@@ -30,8 +33,11 @@ Commands:
   lint [--workspace <path>] [--json]
   consolidate [--workspace <path>] [--json]
   doctor [--workspace <path>] [--json]
+  stats [--workspace <path>] [--json]
+  observe --type <type> --content <text> [--files a,b] [--source <src>] [--workspace <path>] [--json]
   search <query> [--mode text|semantic|hybrid] [--limit <n>] [--workspace <path>] [--json]
-  hook print <zsh|bash|fish|aider|claude|git|antigravity> [--json]
+  mcp [--workspace <path>]
+  hook print <zsh|bash|fish|aider|claude|git|antigravity|hermes|qwen|cursor|mcp> [--json]
   ui [--workspace <path>] [--host <host>] [--port <n>] [--readonly] [--json]
 `;
 }
@@ -446,8 +452,43 @@ cp skills/memory-bridge/SKILL.md ~/.gemini/config/skills/memory-bridge/SKILL.md
 mkdir -p .agents/skills/memory-bridge
 cp skills/memory-bridge/SKILL.md .agents/skills/memory-bridge/SKILL.md
 `;
+    case "hermes":
+      return `# Hermes Agent setup snippet
+# 1. Inspect context before actions:
+#    mb-hermes pre
+# 2. Or search previous decisions:
+#    memory-bridge search "<query>" --mode hybrid
+# 3. Complete tasks and build handoff:
+#    mb-hermes post --intent "<intent>" --summary "<summary>"
+`;
+    case "qwen":
+      return `# Qwen Code setup snippet
+# 1. Resume context before code modification:
+#    mb-qwen pre
+# 2. Complete session:
+#    mb-qwen post --intent "<intent>" --summary "<summary>"
+`;
+    case "cursor":
+      return `# .cursorrules snippet for Cursor IDE
+# Place in repository root:
+Always check .memory-bridge/handoff.md before modifying code.
+When making technical decisions, record them in .memory-bridge/decisions.jsonl.
+When wrapping up, call: mb-cursor post --intent "<intent>" --summary "<summary>"
+`;
+    case "mcp":
+      return `# MCP Server Configuration (Claude Desktop / Cursor / Windsurf)
+# Add to your mcpServers configuration:
+{
+  "mcpServers": {
+    "memory-bridge": {
+      "command": "npx",
+      "args": ["-y", "memory-bridge", "mcp"]
+    }
+  }
+}
+`;
     default:
-      return `# Unknown hook target: ${target}. Supported targets: zsh, bash, fish, aider, claude, git, antigravity\n`;
+      return `# Unknown hook target: ${target}. Supported targets: zsh, bash, fish, aider, claude, git, antigravity, hermes, qwen, cursor, mcp\n`;
   }
 }
 
@@ -456,7 +497,7 @@ async function commandHook(argv: string[], asJson: boolean): Promise<void> {
   const target = argv[1];
 
   if (!action || action !== "print" || !target) {
-    fail("Usage: memory-bridge hook print <zsh|bash|fish|aider|claude|git|antigravity> [--json]", asJson);
+    fail("Usage: memory-bridge hook print <zsh|bash|fish|aider|claude|git|antigravity|hermes|qwen|cursor|mcp> [--json]", asJson);
   }
 
   const snippet = generateHookSnippet(target);
@@ -530,6 +571,76 @@ async function commandConsolidate(argv: string[], asJson: boolean): Promise<void
   }
 }
 
+async function commandStats(argv: string[], asJson: boolean): Promise<void> {
+  const parsed = parseArgs(argv);
+  const workspace = normalizeWorkspace(getStringFlag(parsed, "workspace"));
+  const { config } = await loadConfig(workspace);
+  const stats = await getMemoryStats(workspace, config);
+
+  if (asJson) {
+    printOutput({ ok: true, command: "stats", stats }, true);
+  } else {
+    const lines = [
+      `Memory Bridge Stats`,
+      `Workspace: ${workspace}`,
+      `Project Name: ${stats.projectName}`,
+      `Total Sessions: ${stats.totalSessions}`,
+      `Total Decisions: ${stats.totalDecisions} (Active: ${stats.activeDecisions}, Superseded: ${stats.supersededDecisions})`,
+      `Pending Observations: ${stats.pendingObservations}`,
+      `Indexed Vector Documents: ${stats.vectorDocsCount}`,
+      `Disk Size: ${(stats.diskSizeBytes / 1024).toFixed(1)} KB`,
+      `Oldest Event: ${stats.oldestEventTs || "none"}`,
+      `Newest Event: ${stats.newestEventTs || "none"}`
+    ];
+    printOutput(lines.join("\n"), false);
+  }
+}
+
+async function commandObserve(argv: string[], asJson: boolean): Promise<void> {
+  const parsed = parseArgs(argv);
+  const workspace = normalizeWorkspace(getStringFlag(parsed, "workspace"));
+  const { config } = await loadConfig(workspace);
+
+  const rawType = requireString(getStringFlag(parsed, "type"), "--type", asJson);
+  const validTypes: ObservationType[] = ["session_start", "user_prompt", "tool_call", "tool_result", "session_end"];
+  if (!validTypes.includes(rawType as ObservationType)) {
+    fail(`Invalid observation type: ${rawType}. Valid types: ${validTypes.join(", ")}`, asJson);
+  }
+  const type = rawType as ObservationType;
+
+  const content = requireString(getStringFlag(parsed, "content"), "--content", asJson);
+  const tool = getStringFlag(parsed, "tool") || "cli";
+  const sessionId = getStringFlag(parsed, "session-id") || `cli-${Date.now()}`;
+  const files = getListFlag(parsed, "files");
+
+  const now = new Date().toISOString();
+  const obsEvent: ObservationEvent = {
+    id: `obs-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    ts: now,
+    sessionId,
+    tool,
+    type,
+    payload: {
+      content,
+      ...(files.length > 0 ? { files } : {})
+    }
+  };
+
+  const persist = await appendObservation(workspace, config, obsEvent);
+
+  if (asJson) {
+    printOutput({ ok: true, command: "observe", observation: obsEvent, persist }, true);
+  } else {
+    printOutput(`Observation recorded: ${obsEvent.id} (${obsEvent.type}) in ${persist.file || "skipped"}`, false);
+  }
+}
+
+async function commandMcp(argv: string[]): Promise<void> {
+  const parsed = parseArgs(argv);
+  const workspace = normalizeWorkspace(getStringFlag(parsed, "workspace"));
+  await startMcpServer(workspace);
+}
+
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
   const asJson = argv.includes("--json");
@@ -580,6 +691,21 @@ async function main(): Promise<void> {
 
   if (command === "doctor") {
     await commandDoctor(commandArgs, asJson);
+    return;
+  }
+
+  if (command === "stats") {
+    await commandStats(commandArgs, asJson);
+    return;
+  }
+
+  if (command === "observe") {
+    await commandObserve(commandArgs, asJson);
+    return;
+  }
+
+  if (command === "mcp") {
+    await commandMcp(commandArgs);
     return;
   }
 

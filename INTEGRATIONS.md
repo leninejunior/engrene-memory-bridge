@@ -29,6 +29,8 @@ This contract is specifically designed for cross-tool continuity:
 - Codex: `mb-codex`
 - Claude: `mb-claude`
 - Gemini: `mb-gemini`
+- Hermes Agent: `mb-hermes`
+- Qwen Code: `mb-qwen`
 - Kiro: `mb-kiro`
 - Kilo: `mb-kilo`
 - Copilot CLI: `mb-copilot`
@@ -38,6 +40,8 @@ This contract is specifically designed for cross-tool continuity:
 - Dyad: `mb-dyad`
 - Replit: `mb-replit`
 - Qoder: `mb-qoder`
+- Cursor: `mb-cursor`
+- VS Code: `mb-vscode`
 
 ### Common tools with contract-based support
 
@@ -231,6 +235,50 @@ For team-wide consistency, enforce this policy in docs/onboarding:
 2. Never commit `.memory-bridge/*` runtime files.
 3. Always run pre/post contract when changing tools.
 4. Keep `project-context.md` updated with stable constraints.
+
+## Option G: Model Context Protocol (MCP)
+
+`memory-bridge` includes a built-in JSON-RPC 2.0 MCP server (`memory-bridge mcp`) that communicates over stdio. This enables any MCP-compatible agent or client (Claude Desktop, Cursor, Windsurf, Hermes Agent, Zed, etc.) to query and mutate memory directly via tools.
+
+### Configuration (Claude Desktop / Cursor / Windsurf)
+
+Add to your `claude_desktop_config.json` or cursor MCP settings:
+
+```json
+{
+  "mcpServers": {
+    "memory-bridge": {
+      "command": "npx",
+      "args": ["-y", "memory-bridge", "mcp"]
+    }
+  }
+}
+```
+
+Or when running from a checked-out repository:
+
+```json
+{
+  "mcpServers": {
+    "memory-bridge": {
+      "command": "node",
+      "args": ["/absolute/path/to/engrene-memory-bridge/dist/src/cli/bin.js", "mcp"]
+    }
+  }
+}
+```
+
+### Available MCP Tools
+
+| Tool | Purpose |
+|---|---|
+| `memory_resume` | Get current objective, pending tasks, recent decisions, and handoff snapshot |
+| `memory_search` | Hybrid, semantic, or full-text BM25 search across sessions, decisions, and handoff |
+| `memory_log` | Record a session event with intent, summary, actions, and artifacts |
+| `memory_decision` | Record an architectural or technical decision (with supersedes tracking) |
+| `memory_handoff` | Rebuild and fetch the latest markdown handoff for cross-agent transitions |
+
+---
 
 ## Troubleshooting
 

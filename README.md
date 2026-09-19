@@ -18,13 +18,15 @@ In practice, this means:
 
 ## Core idea
 
-Every tool reads and writes the same memory contract:
+Every tool reads and writes the same memory contract across a complete 5-stage lifecycle:
 
-- `resume` before work
-- `log` after work
-- `handoff build` to consolidate state
+1. **Capture**: Capture interactions or granular tool observations (`memory-bridge observe`)
+2. **Index**: Real-time SQLite FTS5 & Dense vector embeddings (`memory-bridge search --mode hybrid`)
+3. **Consolidate**: Synthesize pending observations and deduplicate decisions (`memory-bridge consolidate`)
+4. **Retrieve**: Instant contextual recovery via CLI (`resume`) or stdio JSON-RPC MCP (`memory-bridge mcp`)
+5. **Handoff**: Clean, human-readable markdown generation (`handoff build`)
 
-This is how context survives tool switching.
+This is how context survives tool and model switching.
 
 ## ⚡ Zero Background Daemons: Does npm need to be running?
 
@@ -75,6 +77,8 @@ This keeps memory useful and compact. You get the important context without dump
 - Codex (`mb-codex`)
 - Claude (`mb-claude`)
 - Gemini (`mb-gemini`)
+- Hermes Agent (`mb-hermes`)
+- Qwen Code (`mb-qwen`)
 - Kiro (`mb-kiro`)
 - Kilo (`mb-kilo`)
 - Copilot CLI (`mb-copilot`)
@@ -84,6 +88,8 @@ This keeps memory useful and compact. You get the important context without dump
 - Dyad (`mb-dyad`)
 - Replit (`mb-replit`)
 - Qoder (`mb-qoder`)
+- Cursor (`mb-cursor`)
+- VS Code (`mb-vscode`)
 
 ### Works via contract (manual commands or hooks)
 
@@ -356,22 +362,42 @@ export MEMORY_BRIDGE_KEY="your-local-passphrase"
 
 Encrypted targets: sessions, decisions, handoff.
 
-## Search
+## Search & Hybrid Retrieval
 
-Text search:
-
-```bash
-memory-bridge search "mfa guard"
-```
-
-Semantic search (optional local index):
+Memory Bridge supports 3 search modes powered by SQLite FTS5 and dense vectors:
 
 ```bash
-memory-bridge init --semantic
-memory-bridge search "retention policy" --mode semantic
+# 1. Text Search (SQLite FTS5 BM25 ranking):
+memory-bridge search "mfa guard" --mode text
+
+# 2. Semantic Search (128d dense vectors or external embeddings):
+memory-bridge search "problema de login" --mode semantic
+
+# 3. Hybrid Search (Reciprocal Rank Fusion k=60 combining FTS5 + Semantic + Recency):
+memory-bridge search "database lock" --mode hybrid
 ```
 
 Index file: `.memory-bridge/vector.sqlite`
+
+## Memory Bridge Stats
+
+Inspect the state, size, and activity of project memory:
+
+```bash
+memory-bridge stats
+# Or machine-readable JSON:
+memory-bridge stats --json
+```
+
+## Model Context Protocol (MCP) Server
+
+Connect any MCP-capable AI agent (Claude Desktop, Cursor, Windsurf, Hermes) via standard I/O:
+
+```bash
+memory-bridge mcp
+```
+
+Exposes 5 native tools: `memory_resume`, `memory_search`, `memory_log`, `memory_decision`, and `memory_handoff`.
 
 ## JSON mode for automation
 

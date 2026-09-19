@@ -54,7 +54,8 @@ export function defaultConfig(projectName: string): BridgeConfig {
     },
     semanticSearch: {
       enabled: false,
-      dimensions: 192
+      provider: "disabled",
+      dimensions: 256
     }
   };
 }
@@ -73,6 +74,7 @@ export async function loadConfig(workspace: string): Promise<ConfigLoadResult> {
     };
   }
 
+  const isSemanticEnabled = parsed.semanticSearch?.enabled ?? false;
   const config: BridgeConfig = {
     schemaVersion: parsed.schemaVersion || "1.0.0",
     projectName: normalizeProjectName(parsed.projectName || path.basename(paths.workspace)),
@@ -88,8 +90,12 @@ export async function loadConfig(workspace: string): Promise<ConfigLoadResult> {
       keyEnvVar: parsed.encryption?.keyEnvVar || "MEMORY_BRIDGE_KEY"
     },
     semanticSearch: {
-      enabled: parsed.semanticSearch?.enabled ?? false,
-      dimensions: Math.max(32, parsed.semanticSearch?.dimensions ?? 192)
+      enabled: isSemanticEnabled,
+      provider: parsed.semanticSearch?.provider ?? (isSemanticEnabled ? "local" : "disabled"),
+      dimensions: Math.max(32, parsed.semanticSearch?.dimensions ?? 256),
+      ...(parsed.semanticSearch?.model ? { model: parsed.semanticSearch.model } : {}),
+      ...(parsed.semanticSearch?.endpoint ? { endpoint: parsed.semanticSearch.endpoint } : {}),
+      ...(parsed.semanticSearch?.apiKeyEnvVar ? { apiKeyEnvVar: parsed.semanticSearch.apiKeyEnvVar } : {})
     }
   };
 
