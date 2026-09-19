@@ -228,6 +228,8 @@ This command automatically:
 
 Once configured, Hermes Agent autonomously accesses 5 native memory tools (`memory_resume`, `memory_search`, `memory_log`, `memory_decision`, `memory_handoff`) to preserve project continuity across sessions and restarts without manual commands!
 
+> 💡 **Why Memory Bridge over Hermes Hindsight?** While Hermes Agent provides an optional plugin called Hindsight, it requires heavy Python dependencies (`transformers`, `sentence-transformers`), active daemons, and remains siloed inside Hermes. Memory Bridge connects Hermes with Claude, Cursor, Codex, and Gemini with zero daemons and zero runtime dependencies. Check out the [full deep dive in HERMES.md](./HERMES.md#-deep-dive-hermes-hindsight-plugin-vs-engrene-memory-bridge) and the 3-way matrix in [ARCHITECTURE_ANALYSIS.md](./ARCHITECTURE_ANALYSIS.md#33-matriz-tripla-de-decisão-arquitetural).
+
 ## Visual local dashboard (with editing)
 
 Start the local UI:
