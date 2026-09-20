@@ -178,6 +178,20 @@ This creates:
 
 It also adds `.memory-bridge/` to your `.gitignore`.
 
+## 🖥️ Visual Web Dashboard UI
+
+To inspect project memory, read the session timeline, and edit objectives visually in your browser:
+
+```bash
+memory-bridge ui
+```
+
+Then open **[http://127.0.0.1:8787](http://127.0.0.1:8787)** in your web browser.
+
+- 📊 **Visual Memory Inspection**: Browse active decisions, session history, and handoff state.
+- 🎨 **Dark / Light Theme & i18n**: Full support for English, Português, and Español.
+- 🔒 **100% Local**: Runs strictly on localhost for human inspection. AI agents operate directly on files/CLI.
+
 ## Daily workflow (for users)
 
 ### Step 1: Resume context before asking your IDE/agent
