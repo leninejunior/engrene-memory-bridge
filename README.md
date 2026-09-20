@@ -106,6 +106,14 @@ Memory Bridge stores operational memory, not full raw transcripts by default.
 
 This keeps memory useful and compact. You get the important context without dumping everything.
 
+## 🌿 Git Worktrees & Multi-Agent Branch Orchestration (ORCA ADE Support)
+
+Memory Bridge has native, built-in support for **Git Worktrees** and **multi-agent orchestration frameworks** (such as **ORCA ADE**):
+
+- 🌿 **Dynamic Branch Resolution**: Every session event recorded via CLI or stdio MCP server automatically resolves the exact Git branch active in the specific worktree directory (`currentGitBranch`), eliminating branch hardcoding.
+- 📂 **Worktree Root Fallback**: When an agent operates inside a sub-worktree folder, Memory Bridge automatically resolves the root repository (`resolveWorkspaceWithGitFallback`), keeping project memory synced while isolating branch-specific execution history.
+- 🔀 **Branch-Aware Handoffs**: Agents working in parallel on separate worktrees/branches record branch-tagged decisions, allowing clean handoffs and cross-branch consolidation when PRs are merged.
+
 ## Popular tools that already work
 
 ### Official wrappers (ready now, CLI-first)
