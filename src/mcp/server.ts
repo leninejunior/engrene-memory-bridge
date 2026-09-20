@@ -1,6 +1,7 @@
 import readline from "node:readline";
 import path from "node:path";
 
+import { currentGitBranch } from "../core/git.js";
 import { defaultBackend } from "../core/backend.js";
 import { runConsolidation } from "../core/consolidate.js";
 import { loadConfig } from "../core/config.js";
@@ -122,7 +123,7 @@ export async function handleMcpToolCall(
         ts: new Date().toISOString(),
         tool: String(args?.tool || "mcp"),
         workspace,
-        branch: "main",
+        branch: String(args?.branch || currentGitBranch(workspace)),
         intent: String(args?.intent || ""),
         summary: String(args?.summary || ""),
         actions: Array.isArray(args?.actions) ? args.actions.map(String) : [],

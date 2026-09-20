@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(if [ -n \"$ORCA_CLI_COMMAND\" ]; then echo \"ORCA_CLI_COMMAND=$ORCA_CLI_COMMAND\"; elif [ -n \"$ORCA_DEV_REPO_ROOT\" ]; then echo \"ORCA_DEV_REPO_ROOT=$ORCA_DEV_REPO_ROOT\"; else echo \"using: orca\"; fi)",
+      "Bash(orca skills:*)",
+      "Bash(memory-bridge resume --for qoder 2>&1 | head -100)"
+    ]
+  }
+}

@@ -79,6 +79,9 @@ test("handleMcpToolCall handles core MCP tool invocations", async () => {
     );
     assert.equal(logRes.isError, undefined);
     assert.ok(logRes.text.includes("ok"));
+    const parsedLog = JSON.parse(logRes.text);
+    assert.ok(typeof parsedLog.event.branch === "string");
+    assert.ok(parsedLog.event.branch.length > 0);
 
     // 2. memory_decision via MCP
     const decRes = await handleMcpToolCall(
