@@ -24,7 +24,7 @@ export interface DecisionEvent {
   supersedes: StringList;
 }
 
-export type SemanticProvider = "disabled" | "local" | "openai-compatible" | "ollama";
+export type SemanticProvider = "disabled" | "local" | "openai-compatible" | "ollama" | "jev";
 
 export interface SemanticSearchConfig {
   enabled: boolean;

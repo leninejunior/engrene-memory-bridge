@@ -301,7 +301,7 @@ export async function generateEmbedding(text: string, config: BridgeConfig): Pro
     }
   }
 
-  if (provider === "local") {
+  if (provider === "local" || provider === "jev") {
     return embedLocalDense(text, dimensions);
   }
 

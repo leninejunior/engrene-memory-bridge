@@ -19,6 +19,7 @@ import { appendObservation } from "../core/capture.js";
 import { getMemoryStats } from "../core/stats.js";
 import { startMcpServer } from "../mcp/server.js";
 import { startUiServer } from "../ui/server.js";
+import { syncObsidianVault } from "../core/obsidian.js";
 import { installToolIntegration } from "./install.js";
 import type { DecisionEvent, ObservationEvent, ObservationType, SessionEvent } from "../types/events.js";
 
@@ -786,7 +787,34 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (command === "obsidian") {
+    await commandObsidian(commandArgs, asJson);
+    return;
+  }
+
   fail(`Unknown command.\n\n${usage()}`, asJson);
+}
+
+async function commandObsidian(argv: string[], asJson: boolean): Promise<void> {
+  const parsed = parseArgs(argv);
+  const workspace = normalizeWorkspace(getStringFlag(parsed, "workspace"));
+  const vaultDir = getStringFlag(parsed, "vault") || path.join(workspace, ".obsidian-vault");
+  const { config } = await loadConfig(workspace);
+
+  const result = await syncObsidianVault(workspace, config, vaultDir);
+
+  printOutput(
+    {
+      ok: true,
+      command: "obsidian",
+      workspace,
+      vaultDir: result.vaultDir,
+      createdFiles: result.createdFiles,
+      totalDecisions: result.totalDecisions,
+      totalSessions: result.totalSessions
+    },
+    asJson
+  );
 }
 
 main().catch((error) => {
