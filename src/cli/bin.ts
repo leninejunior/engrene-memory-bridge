@@ -21,6 +21,7 @@ import { startMcpServer } from "../mcp/server.js";
 import { startUiServer } from "../ui/server.js";
 import { syncObsidianVault } from "../core/obsidian.js";
 import { syncCompoundEngineering } from "../core/ce.js";
+import { runAutoSyncIntegrations } from "../core/auto-sync.js";
 import { installToolIntegration } from "./install.js";
 import type { DecisionEvent, ObservationEvent, ObservationType, SessionEvent } from "../types/events.js";
 
@@ -169,6 +170,8 @@ async function commandLog(argv: string[], asJson: boolean): Promise<void> {
     });
   }
 
+  await runAutoSyncIntegrations(workspace, config);
+
   printOutput(
     {
       ok: true,
@@ -211,6 +214,8 @@ async function commandDecisionAdd(argv: string[], asJson: boolean): Promise<void
       text: [redactedEvent.title, redactedEvent.context, redactedEvent.decision, redactedEvent.impact, ...redactedEvent.supersedes].join("\n")
     });
   }
+
+  await runAutoSyncIntegrations(workspace, config);
 
   printOutput(
     {

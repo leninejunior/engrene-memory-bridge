@@ -53,6 +53,16 @@ export interface ObservationEvent {
   payload: Record<string, unknown>;
 }
 
+export interface IntegrationsConfig {
+  ce?: {
+    autoSync?: boolean;
+  };
+  obsidian?: {
+    autoSync?: boolean;
+    vaultDir?: string;
+  };
+}
+
 export interface BridgeConfig {
   schemaVersion: string;
   projectName: string;
@@ -69,6 +79,7 @@ export interface BridgeConfig {
   };
   semanticSearch: SemanticSearchConfig;
   capture?: CaptureConfig;
+  integrations?: IntegrationsConfig;
 }
 
 export interface ResumeSnapshot {
