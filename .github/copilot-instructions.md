@@ -1,12 +1,12 @@
-# GitHub Copilot Instructions — Memory Bridge
+# GitHub Copilot Instructions (Compound Engineering + Memory Bridge)
 
-This repository uses **Memory Bridge** (`engrene-memory-bridge`).
-Please review [AGENTS.md](../AGENTS.md) for full agent guidelines.
+## Project Rules
+- Follow Memory Bridge lifecycle protocol defined in AGENTS.md.
+- Read .memory-bridge/handoff.md before starting work.
+- Maintain zero runtime dependencies and local-first storage.
 
-## Quick Protocol
-- **Resume**: Run `memory-bridge resume --for copilot` or inspect `.memory-bridge/handoff.md` before starting tasks.
-- **Skill**: Skill documentation is at `skills/memory-bridge/SKILL.md`.
-- **Decisions**: Log non-trivial architectural decisions with `memory-bridge decision add`.
-- **Validation**: Ensure tests pass with `npm test`.
-- **Log & Handoff**: On completion, run `memory-bridge log --tool copilot ...` and `memory-bridge handoff build`.
-- **Local-first**: Storage is strictly local under `.memory-bridge/`. Do not exfiltrate codebase memory.
+## Active Decisions
+- **[dec-mu7tvkhc] Independent Community Memory Bridge**: Adopt filesystem JSONL and Markdown contracts under .memory-bridge with zero runtime dependencies *(Impact: Full transparency, no vendor lock-in, cross-tool continuity between Claude, Codex, Gemini, Antigravity and Orca)*
+- **[dec-mu7tvkjh] Hybrid Local Search Engine**: Combine BM25 term weighting with local embedded SQLite cosine similarity *(Impact: Fast, local, offline search without cloud LLM API dependencies)*
+- **[dec-muc3rsh5] Obsidian Vault Export & JEV BM25 Hybrid Provider Support**: Added optional Obsidian vault sync (memory-bridge obsidian --vault <path>) exporting Markdown notes with YAML frontmatter and wikilinks, and added 'jev' semantic provider option for joint code-text search combined with BM25 SQLite FTS5. *(Impact: Expands memory-bridge export capabilities to Obsidian and improves semantic vector retrieval options.)*
+- **[dec-mucoine1] Compound Engineering (CE) Multi-Agent Rules Synchronization**: Added 'memory-bridge ce' CLI command and core module (src/core/ce.ts) to automatically generate and sync AGENTS.md, .cursorrules, CLAUDE.md, and copilot-instructions.md with active decisions and pitfalls. *(Impact: Ensures all AI assistants automatically inherit project decisions, memory lifecycle protocols, and pitfalls without manual prompt editing.)*

@@ -1,65 +1,14 @@
-# CLAUDE.md
+# CLAUDE.md — Claude Code Instructions (Compound Engineering + Memory Bridge)
 
-This project uses **Memory Bridge** (`engrene-memory-bridge`) to maintain continuous context across AI sessions and different AI tools.
+## Workflow & Memory Protocol
+1. Resume context at session start: `memory-bridge resume --for claude`
+2. Check past decisions & traps: `memory-bridge search "<query>" --mode hybrid`
+3. Record architectural choices: `memory-bridge decision add --title "<title>" --decision "<decision>"`
+4. Build & verify: `npm test`
+5. Wrap-up session: `memory-bridge log --tool claude --intent "<intent>" --summary "<summary>" && memory-bridge handoff build`
 
-See [AGENTS.md](AGENTS.md) for the universal agent protocol.
-
----
-
-## Native Skill
-
-Claude Code agents can use the native skill located at:
-* [skills/memory-bridge/SKILL.md](skills/memory-bridge/SKILL.md)
-
----
-
-## Session Workflow for Claude
-
-### 1. On Every Session Start
-Run this command or read `.memory-bridge/handoff.md` before taking any actions:
-```bash
-memory-bridge resume --for claude
-```
-
-### 2. When Making Decisions
-```bash
-memory-bridge decision add \
-  --title "Decision Title" \
-  --decision "What was chosen" \
-  --context "Why this choice was made" \
-  --impact "Consequences and affected parts"
-```
-
-### 3. Build & Test Commands
-```bash
-# Build
-npm run build
-
-# Test
-npm test
-
-# Lint & Health
-memory-bridge lint
-memory-bridge doctor
-```
-
-### 4. On Session Completion
-Always record what was done and rebuild the handoff:
-```bash
-memory-bridge log \
-  --tool claude \
-  --intent "<what the user requested>" \
-  --summary "<what was implemented>" \
-  --actions "task1,task2" \
-  --artifacts "file1.ts,file2.md" \
-  --tags "feature,test"
-
-memory-bridge handoff build
-```
-
----
-
-## Architecture Principles
-- **Local-first**: Storage lives in `.memory-bridge/`. No cloud or external telemetry.
-- **Zero runtime dependencies**: Pure Node.js standard library.
-- **Security**: Automatic redaction of secrets in memory logs.
+## Active Architectural Decisions & Pitfalls
+- **[dec-mu7tvkhc] Independent Community Memory Bridge**: Adopt filesystem JSONL and Markdown contracts under .memory-bridge with zero runtime dependencies *(Impact: Full transparency, no vendor lock-in, cross-tool continuity between Claude, Codex, Gemini, Antigravity and Orca)*
+- **[dec-mu7tvkjh] Hybrid Local Search Engine**: Combine BM25 term weighting with local embedded SQLite cosine similarity *(Impact: Fast, local, offline search without cloud LLM API dependencies)*
+- **[dec-muc3rsh5] Obsidian Vault Export & JEV BM25 Hybrid Provider Support**: Added optional Obsidian vault sync (memory-bridge obsidian --vault <path>) exporting Markdown notes with YAML frontmatter and wikilinks, and added 'jev' semantic provider option for joint code-text search combined with BM25 SQLite FTS5. *(Impact: Expands memory-bridge export capabilities to Obsidian and improves semantic vector retrieval options.)*
+- **[dec-mucoine1] Compound Engineering (CE) Multi-Agent Rules Synchronization**: Added 'memory-bridge ce' CLI command and core module (src/core/ce.ts) to automatically generate and sync AGENTS.md, .cursorrules, CLAUDE.md, and copilot-instructions.md with active decisions and pitfalls. *(Impact: Ensures all AI assistants automatically inherit project decisions, memory lifecycle protocols, and pitfalls without manual prompt editing.)*

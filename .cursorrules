@@ -1,25 +1,16 @@
-# Cursor Rules — Memory Bridge Integration
+# .cursorrules — Cursor IDE Instructions (Compound Engineering + Memory Bridge)
 
-You are operating in a codebase using **Memory Bridge** (`engrene-memory-bridge`).
-Full agent documentation is available in `AGENTS.md`.
+# 1. Context & Handoff Protocol
+Always read .memory-bridge/handoff.md and .memory-bridge/project-context.md before starting work.
+When completing a non-trivial task, run:
+  memory-bridge log --tool cursor --intent "<intent>" --summary "<summary>"
+  memory-bridge handoff build
 
-## Memory Bridge Workflow
+# 2. Architectural Decisions & Pitfalls to Avoid
+- **[dec-mu7tvkhc] Independent Community Memory Bridge**: Adopt filesystem JSONL and Markdown contracts under .memory-bridge with zero runtime dependencies *(Impact: Full transparency, no vendor lock-in, cross-tool continuity between Claude, Codex, Gemini, Antigravity and Orca)*
+- **[dec-mu7tvkjh] Hybrid Local Search Engine**: Combine BM25 term weighting with local embedded SQLite cosine similarity *(Impact: Fast, local, offline search without cloud LLM API dependencies)*
+- **[dec-muc3rsh5] Obsidian Vault Export & JEV BM25 Hybrid Provider Support**: Added optional Obsidian vault sync (memory-bridge obsidian --vault <path>) exporting Markdown notes with YAML frontmatter and wikilinks, and added 'jev' semantic provider option for joint code-text search combined with BM25 SQLite FTS5. *(Impact: Expands memory-bridge export capabilities to Obsidian and improves semantic vector retrieval options.)*
+- **[dec-mucoine1] Compound Engineering (CE) Multi-Agent Rules Synchronization**: Added 'memory-bridge ce' CLI command and core module (src/core/ce.ts) to automatically generate and sync AGENTS.md, .cursorrules, CLAUDE.md, and copilot-instructions.md with active decisions and pitfalls. *(Impact: Ensures all AI assistants automatically inherit project decisions, memory lifecycle protocols, and pitfalls without manual prompt editing.)*
 
-1. **Before doing any work**:
-   Run `memory-bridge resume --for cursor` to read the current objective, pending tasks, and recent decisions.
-
-2. **When making architectural decisions**:
-   Run `memory-bridge decision add --title "..." --decision "..." --context "..." --impact "..."`.
-
-3. **When tasks are completed**:
-   - Run `npm test` to verify no regressions.
-   - Run `memory-bridge log --tool cursor --intent "..." --summary "..." --actions "..." --artifacts "..." --tags "..."`.
-   - Run `memory-bridge handoff build` to regenerate `.memory-bridge/handoff.md`.
-
-4. **Skill Location**:
-   The native skill instructions are in `skills/memory-bridge/SKILL.md`.
-
-## Key Rules
-- Local-first only: Never leak memory or credentials to external APIs.
-- Zero runtime dependencies in the core engine.
-- Always keep `.memory-bridge/` files intact and adhere to JSONL / Markdown contracts.
+# 3. Quality & Verification
+Never claim success without running tests (`npm test`).

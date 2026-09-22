@@ -20,6 +20,7 @@ import { getMemoryStats } from "../core/stats.js";
 import { startMcpServer } from "../mcp/server.js";
 import { startUiServer } from "../ui/server.js";
 import { syncObsidianVault } from "../core/obsidian.js";
+import { syncCompoundEngineering } from "../core/ce.js";
 import { installToolIntegration } from "./install.js";
 import type { DecisionEvent, ObservationEvent, ObservationType, SessionEvent } from "../types/events.js";
 
@@ -42,6 +43,8 @@ Commands:
   install <hermes|antigravity> [--workspace <path>] [--json]
   hook print <zsh|bash|fish|aider|claude|git|antigravity|hermes|qwen|cursor|mcp> [--json]
   ui [--workspace <path>] [--host <host>] [--port <n>] [--readonly] [--json]
+  obsidian [--vault <path>] [--workspace <path>] [--json]
+  ce [--workspace <path>] [--json]
 `;
 }
 
@@ -792,6 +795,11 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (command === "ce") {
+    await commandCe(commandArgs, asJson);
+    return;
+  }
+
   fail(`Unknown command.\n\n${usage()}`, asJson);
 }
 
@@ -812,6 +820,26 @@ async function commandObsidian(argv: string[], asJson: boolean): Promise<void> {
       createdFiles: result.createdFiles,
       totalDecisions: result.totalDecisions,
       totalSessions: result.totalSessions
+    },
+    asJson
+  );
+}
+
+async function commandCe(argv: string[], asJson: boolean): Promise<void> {
+  const parsed = parseArgs(argv);
+  const workspace = normalizeWorkspace(getStringFlag(parsed, "workspace"));
+  const { config } = await loadConfig(workspace);
+
+  const result = await syncCompoundEngineering(workspace, config);
+
+  printOutput(
+    {
+      ok: true,
+      command: "ce",
+      workspace: result.workspace,
+      createdFiles: result.createdFiles,
+      updatedFiles: result.updatedFiles,
+      activeDecisionsCount: result.activeDecisionsCount
     },
     asJson
   );
