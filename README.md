@@ -1,7 +1,7 @@
 # 🧠 Engrene Memory Bridge (`engrene-memory-bridge`)
 
-> **Um projeto. Uma memória. Qualquer agente de IA.**  
-> Protocolo local-first, aberto e sem dependências de runtime para interoperabilidade contínua de memória entre agentes de código (Antigravity, Claude Code, Cursor, Copilot, Aider, Windsurf, Hermes, Gemini, Codex).
+> **One project. One memory. Any AI agent.**  
+> An open, local-first memory protocol for AI coding agents (Antigravity, Claude Code, Cursor, Copilot, Aider, Windsurf, Hermes, Gemini, Codex). Zero runtime dependencies, 100% offline, git-native.
 
 [![npm version](https://img.shields.io/npm/v/engrene-memory-bridge.svg)](https://www.npmjs.com/package/engrene-memory-bridge)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -9,64 +9,70 @@
 
 ---
 
-## 🚀 Por que usar o Memory Bridge?
-
-### 1. 💰 Economia Drástica de Tokens no Desenvolvimento Local
-Em vez de queimar milhares de tokens da sua janela de contexto colando históricos gigantes, arquivos inteiros de log ou prompts redundantes:
-- O Memory Bridge pré-filtra e injeta **apenas a informação necessária** através da busca híbrida (BM25 + Vetores Densos JEV).
-- O arquivo consolidado [`handoff.md`](.memory-bridge/handoff.md) fornece um resumo de alto nível com tarefas pendentes e próximos passos sem estourar o limite de tokens.
-
-### 2. 🌍 Continuidade Portátil & Acesso Remoto
-Toda a memória do seu projeto reside na pasta local `.memory-bridge/` versionada diretamente pelo **Git**.
-- **Desenvolveu local e precisa acessar de fora/remoto?** Basta dar um `git pull` na outra máquina ou servidor SSH.
-- 100% da memória episódica, decisões técnicas e estado de progresso são transferidos instantaneamente entre qualquer IDE ou agente.
-
-### 3. 🔓 Zero Lock-in e Zero Dependências de Runtime
-- Roda **100% local e offline**, utilizando apenas recursos nativos do Node.js 20+ (`node:sqlite`, `node:crypto`, `node:fs`).
-- Sem contêineres pesados, sem APIs pagas em nuvem, sem credenciais expostas.
+## 🌐 Language / Idioma
+* Read this in English (default below)
+* 🇧🇷 [Versão em Português / Portuguese Version](#-versão-em-português)
 
 ---
 
-## ⚡ Instalação Rápida
+## 🚀 Key Value Propositions
+
+### 1. 💰 Massive Token Savings for Local Development
+Instead of burning thousands of context window tokens feeding full chat histories or redundant file dumps to your LLM:
+- Memory Bridge uses **BM25 + Joint Embedding Vectors (JEV)** hybrid search to retrieve *only the exact relevant context*.
+- Consolidated [`handoff.md`](.memory-bridge/handoff.md) snapshots provide high-level task goals and next steps without blowing up your token budget.
+
+### 2. 🌍 Remote Portability & Seamless Handoff
+All memory artifacts live inside `.memory-bridge/` tracked directly in **Git**.
+- **Working locally and need to switch to a remote server or SSH container?** Simply `git pull`.
+- 100% of episodic memory, architectural decisions, and handoff state transfer instantly across machines and AI tools.
+
+### 3. 🔓 Zero Vendor Lock-in & Zero Runtime Dependencies
+- Operates **100% offline** using standard Node.js 20+ built-ins (`node:sqlite`, `node:crypto`, `node:fs`).
+- No heavy Docker containers, no paid cloud memory APIs, no API key leaks.
+
+---
+
+## ⚡ Quick Start
 
 ```bash
-# Instalação global via npm
+# Global installation via npm
 npm install -g engrene-memory-bridge
 
-# Ou execução direta via npx
+# Initialize memory in your repository
 npx engrene-memory-bridge init
 ```
 
 ---
 
-## 🧩 Integrações Nativas & Ecossistema
+## 🧩 Native Ecosystem Integrations
 
-### 🔮 1. Sincronização com Obsidian Vault
-Exporta a memória do repositório para o seu Vault do Obsidian, gerando notas em Markdown com YAML frontmatter e **wikilinks interconectados** (`[[dec-123]]`) para visualização no **Graph View**.
+### 🔮 1. Obsidian Vault Synchronization
+Sync project memory directly into your Obsidian Vault with Markdown notes, YAML frontmatter, and **wikilinks** (`[[dec-123]]`) to visualize decision lineage in Obsidian's **Graph View**.
 
 ```bash
-memory-bridge obsidian --vault ~/SeuObsidianVault
+memory-bridge obsidian --vault ~/MyObsidianVault
 ```
 
-### ⚙️ 2. Compound Engineering (CE) Multi-Agente
-Sincroniza automaticamente as decisões ativas e armadilhas do projeto entre as principais ferramentas de IA com um único comando:
+### ⚙️ 2. Compound Engineering (CE) Multi-Agent Sync
+Automatically sync active decisions, pitfalls, and memory lifecycle protocols across all popular AI assistant configuration files with a single command:
 
 ```bash
 memory-bridge ce
 ```
-Este comando gera e atualiza instantaneamente:
-- `AGENTS.md` (Instruções universais multi-agente)
+Instantly generates and updates:
+- `AGENTS.md` (Universal multi-agent instructions)
 - `.cursorrules` (Cursor IDE)
 - `CLAUDE.md` (Claude Code / Anthropic CLI)
 - `.github/copilot-instructions.md` (GitHub Copilot)
 
-### 🔌 3. Servidor MCP (Model Context Protocol)
-Suporte nativo ao protocolo MCP via stdio para Claude Desktop, Cursor, Windsurf e VS Code.
+### 🔌 3. Model Context Protocol (MCP) Server
+Native MCP stdio server support for Claude Desktop, Cursor, Windsurf, and VS Code.
 
 ```bash
 memory-bridge mcp
 ```
-**Configuração `mcpServers`:**
+**`mcpServers` Configuration:**
 ```json
 {
   "mcpServers": {
@@ -78,15 +84,15 @@ memory-bridge mcp
 }
 ```
 
-### 🛠️ 4. Skill Nativa para Antigravity & Gemini
-Instale a skill nativa globalmente ou no workspace com:
+### 🛠️ 4. Native Skill for Antigravity & Gemini
+Install the native skill globally or locally in your workspace:
 ```bash
 memory-bridge install antigravity
 ```
 
 ---
 
-## 🔄 Ciclo de Vida Padrão (Lifecycle Protocol)
+## 🔄 Memory Bridge Lifecycle Protocol
 
 ```mermaid
 flowchart LR
@@ -96,53 +102,62 @@ flowchart LR
     D --> E["5. Log & Handoff\n(memory-bridge log && handoff build)"]
 ```
 
-1. **Início da Sessão**: Resgate o contexto ativo:
+1. **Session Start**: Resume active context:
    ```bash
    memory-bridge resume --for antigravity
    ```
-2. **Busca Híbrida (BM25 + Vetores JEV)**:
+2. **Hybrid Search (BM25 + JEV Vectors)**:
    ```bash
-   memory-bridge search "como tratamos chaves de API" --mode hybrid
+   memory-bridge search "how do we store api keys" --mode hybrid
    ```
-3. **Registro de Decisões**:
+3. **Record Architectural Decisions**:
    ```bash
    memory-bridge decision add \
-     --title "Arquitetura Local-First" \
-     --decision "Adotar JSONL e SQLite nativo" \
-     --context "Sem APIs pagas" \
-     --impact "Total privacidade"
+     --title "Local-First Architecture" \
+     --decision "Use filesystem JSONL and native SQLite" \
+     --context "Avoid third-party cloud APIs" \
+     --impact "Full privacy and offline support"
    ```
-4. **Finalização da Sessão & Handoff**:
+4. **Session Wrap-Up & Handoff**:
    ```bash
-   memory-bridge log --tool antigravity --intent "Implementar recurso X" --summary "Criado módulo X e testes"
+   memory-bridge log --tool antigravity --intent "Implement feature X" --summary "Created module X and tests"
    memory-bridge handoff build
    ```
 
 ---
 
-## 📋 Referência de Comandos CLI
+## 📋 CLI Command Reference
 
-| Comando | Descrição |
+| Command | Description |
 | :--- | :--- |
-| `memory-bridge init` | Inicializa a estrutura `.memory-bridge/` no repositório. |
-| `memory-bridge resume --for <tool>` | Resgata objetivos, pendências e decisões vigentes. |
-| `memory-bridge search <query>` | Busca textual, semântica ou híbrida (BM25 + JEV). |
-| `memory-bridge decision add` | Registra uma decisão técnica ou arquitetural durável. |
-| `memory-bridge log` | Registra os eventos e artefatos de uma sessão concluída. |
-| `memory-bridge handoff build` | Consolida o arquivo de passagem de bastão (`handoff.md`). |
-| `memory-bridge obsidian` | Sincroniza e exporta memórias para um Vault do Obsidian. |
-| `memory-bridge ce` | Sincroniza regras de Compound Engineering (`AGENTS.md`, `.cursorrules`, etc.). |
-| `memory-bridge mcp` | Inicia o servidor MCP stdio. |
-| `memory-bridge ui` | Abre a Dashboard Web Local (Porta 8787). |
-| `memory-bridge doctor` | Diagnostica a integridade e saúde da memória. |
+| `memory-bridge init` | Initialize `.memory-bridge/` structure in your workspace. |
+| `memory-bridge resume --for <tool>` | Retrieve active goals, pending tasks, and decisions. |
+| `memory-bridge search <query>` | Perform text, semantic, or hybrid (BM25 + JEV) search. |
+| `memory-bridge decision add` | Append a durable architectural decision. |
+| `memory-bridge log` | Log completed session events, actions, and artifacts. |
+| `memory-bridge handoff build` | Consolidate memory into [`handoff.md`](.memory-bridge/handoff.md). |
+| `memory-bridge obsidian` | Sync and export memory notes to an Obsidian Vault. |
+| `memory-bridge ce` | Sync Compound Engineering rules (`AGENTS.md`, `.cursorrules`, etc.). |
+| `memory-bridge mcp` | Start stdio MCP server for IDEs. |
+| `memory-bridge ui` | Launch local Web Dashboard on port 8787. |
+| `memory-bridge doctor` | Inspect memory store health and lint integrity. |
 
 ---
 
-## 🛡️ Privacidade e Segurança
-- **Redação Automática de Segredos**: Padrões de chaves de API, senhas e tokens JWT são expurgados antes da gravação.
-- **Criptografia AES-256-GCM Opcional**: Encriptação local de envelope ativável via `config.json`.
+## 🇧🇷 Versão em Português
+
+### 💡 Destaques em Português
+- **Economia Drástica de Tokens**: Evite enviar históricos gigantes para a IA. O Memory Bridge pré-filtra via BM25 + JEV e injeta apenas o contexto estritamente necessário.
+- **Continuidade Portátil**: A memória é salva em `.memory-bridge/` no próprio Git. Um simples `git pull` transfere 100% do progresso entre máquinas ou servidores remotos.
+- **Obsidian & Compound Engineering**: Exporte memórias para o Obsidian Graph View com Wikilinks (`[[dec-123]]`) e sincronize `.cursorrules`, `AGENTS.md` e `CLAUDE.md` automaticamente via `memory-bridge ce`.
 
 ---
 
-## 📄 Licença
-Licenciado sob a [MIT License](LICENSE). Desenvolvido pela comunidade **Engrene**.
+## 🛡️ Privacy & Security
+- **Automatic Secret Redaction**: Common API keys, JWTs, and tokens are scrubbed before persistence.
+- **Optional AES-256-GCM Encryption**: Local envelope encryption configured in `config.json`.
+
+---
+
+## 📄 License
+Licensed under the [MIT License](LICENSE). Built by the **Engrene** community.
