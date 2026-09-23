@@ -31,6 +31,8 @@ node dist/tests/benchmark/run.js --runs 7 --json     # 2026-09-22-retrieval.json
 
 Timings are in-process (`searchMemory()` called directly). They exclude Node start-up of the `memory-bridge` CLI, which is not measured.
 
+**Re-run on Node v26.10.0** (`node:26` image, same class of host, 2026-09-23, tree including the Obsidian import work): 56 tests, 56 pass. Every quality metric below (P@3, R@5, MRR, noise@5, superseded leak, stale leak, unstable) came out identical; only latency changed, and downward: text p50 4.86 ms / p95 8.53 ms, text-fts5 8.29 / 13.46, semantic 9.14 / 14.34, hybrid 10.05 / 15.06. Footprint numbers were identical.
+
 ## What the harness does
 
 1. Creates a temporary workspace with the same code path as `memory-bridge init --semantic --project-name orbit-crm-benchmark` (`initWorkspace()` from `src/core/config.ts`).
