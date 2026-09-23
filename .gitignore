@@ -1,4 +1,6 @@
 node_modules/
 dist/
-.memory-bridge/
+.memory-bridge/vector.sqlite
+.memory-bridge/.lock
+.memory-bridge/observations/
 *.tgz

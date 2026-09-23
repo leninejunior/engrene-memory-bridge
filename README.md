@@ -25,7 +25,7 @@ Instead of burning thousands of context window tokens feeding full chat historie
 ### 2. 🌍 Remote Portability & Seamless Handoff
 All memory artifacts are plain JSONL and Markdown inside `.memory-bridge/`, so they can be committed and pulled like code.
 - **Private by default:** `init` adds `.memory-bridge/` to your `.gitignore`, so nothing leaves your machine until you opt in.
-- **To share memory across machines**, replace that line with the local-only files: `.memory-bridge/vector.sqlite` (search index, rebuilt by `search`), `.memory-bridge/.lock` and `.memory-bridge/observations/` (raw captures). Then **switching to a remote server or SSH container is a `git pull`**: decisions, sessions and handoff state travel with the repo.
+- **To share memory across machines**, replace that line with the local-only files: `.memory-bridge/vector.sqlite` (search index, rebuilt by `search`), `.memory-bridge/.lock` and `.memory-bridge/observations/` (raw captures). `init` leaves that selective configuration alone. Then **switching to a remote server or SSH container is a `git pull`**: decisions, sessions and handoff state travel with the repo. This repository does exactly that with its own `.memory-bridge/`.
 - Secret redaction runs before anything is written, and optional encryption (see Privacy & Security) protects committed memory.
 
 ### 3. 🔓 Zero Vendor Lock-in & Zero Runtime Dependencies

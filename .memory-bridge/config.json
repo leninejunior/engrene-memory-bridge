@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectName": "community-roadmap",
+  "createdAt": "2026-09-19T03:28:35.020Z",
+  "redaction": {
+    "enabled": true,
+    "customPatterns": [
+      "\\b(?:\\d{1,3}\\.){3}\\d{1,3}(?::\\d{2,5})?\\b"
+    ]
+  },
+  "encryption": {
+    "enabled": false,
+    "kdf": "scrypt",
+    "saltBase64": "b8y7+JBzTxaI9QuLmpAejQ==",
+    "keyEnvVar": "MEMORY_BRIDGE_KEY"
+  },
+  "semanticSearch": {
+    "enabled": true,
+    "provider": "local",
+    "dimensions": 256
+  }
+}
