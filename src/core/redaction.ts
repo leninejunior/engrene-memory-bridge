@@ -7,6 +7,8 @@ const SLACK_TOKEN = /\bxox[baprs]-[a-zA-Z0-9-]{10,}\b/g;
 const GOOGLE_AI_KEY = /\bAIza[0-9A-Za-z-_]{35}\b/g;
 const AUTH_BEARER = /\bBearer\s+[A-Za-z0-9._\-+/=]{16,}\b/g;
 const SENSITIVE_ASSIGNMENT = /(\b(?:api[_-]?key|token|password|passwd|secret|client[_-]?secret|private[_-]?key)\b\s*[:=]\s*)([^\s,;]+)/gi;
+// `key: [REDACTED]` left behind by redactString must not be reported as a leak again.
+const REDACTED_ASSIGNMENT = /(\b(?:api[_-]?key|token|password|passwd|secret|client[_-]?secret|private[_-]?key)\b\s*[:=]\s*)\[REDACTED[A-Z_]*\]/gi;
 const ENV_LINE = /(^|\n)([A-Z][A-Z0-9_]{1,})=([^\n]+)/g;
 
 function redactString(input: string, customPatterns?: string[]): string {
@@ -79,28 +81,32 @@ export function redactUnknown<T>(value: T, customPatterns?: string[]): T {
 
 export function detectLeakageRisk(input: string): string[] {
   const findings: string[] = [];
-  if (PRIVATE_KEY_BLOCK.test(input)) {
+  // String#search ignores the `g` flag and lastIndex, so repeated calls stay deterministic.
+  const hit = (pattern: RegExp, text: string): boolean => text.search(pattern) !== -1;
+  const probe = input.replace(REDACTED_ASSIGNMENT, "");
+
+  if (hit(PRIVATE_KEY_BLOCK, input)) {
     findings.push("private-key-block");
   }
-  if (OPENAI_STYLE_KEY.test(input)) {
+  if (hit(OPENAI_STYLE_KEY, input)) {
     findings.push("openai-key-pattern");
   }
-  if (GITHUB_TOKEN.test(input)) {
+  if (hit(GITHUB_TOKEN, input)) {
     findings.push("github-token-pattern");
   }
-  if (GITLAB_TOKEN.test(input)) {
+  if (hit(GITLAB_TOKEN, input)) {
     findings.push("gitlab-token-pattern");
   }
-  if (SLACK_TOKEN.test(input)) {
+  if (hit(SLACK_TOKEN, input)) {
     findings.push("slack-token-pattern");
   }
-  if (GOOGLE_AI_KEY.test(input)) {
+  if (hit(GOOGLE_AI_KEY, input)) {
     findings.push("google-ai-key-pattern");
   }
-  if (AUTH_BEARER.test(input)) {
+  if (hit(AUTH_BEARER, input)) {
     findings.push("bearer-token-pattern");
   }
-  if (SENSITIVE_ASSIGNMENT.test(input)) {
+  if (hit(SENSITIVE_ASSIGNMENT, probe)) {
     findings.push("sensitive-assignment-pattern");
   }
   return Array.from(new Set(findings));

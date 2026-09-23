@@ -175,8 +175,10 @@ async function ensureGitignoreEntry(workspace: string): Promise<boolean> {
   const gitignorePath = path.join(workspace, ".gitignore");
   const entry = ".memory-bridge/";
   const current = (await readText(gitignorePath)) ?? "";
-  const lines = new Set(current.split(/\r?\n/).map((line) => line.trim()));
-  if (lines.has(entry)) {
+  const lines = current.split(/\r?\n/).map((line) => line.trim());
+  // Respect an existing choice: either the whole folder is ignored, or the user opted in to
+  // committing memory and ignores only the local-only files (vector.sqlite, .lock, observations/).
+  if (lines.some((line) => line === entry || (line.startsWith(".memory-bridge") && !line.startsWith("#")))) {
     return false;
   }
   const next = `${current.trimEnd()}\n${entry}\n`;
