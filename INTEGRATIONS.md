@@ -26,6 +26,8 @@ This contract is specifically designed for cross-tool continuity:
 
 ### Official wrapper support
 
+Every `mb-*` binary is a three-line alias that calls `runWrapper("<tool>", argv)` from `src/wrappers/common.ts`. They exist so each tool has a natural entry point; there is one implementation to maintain, not sixteen.
+
 - Codex: `mb-codex`
 - Claude: `mb-claude`
 - Gemini: `mb-gemini`
