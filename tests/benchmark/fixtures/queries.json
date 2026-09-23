@@ -1,0 +1,127 @@
+[
+  {
+    "id": "q01",
+    "query": "session cache",
+    "category": "superseded",
+    "expected": ["dec-cache-sqlite", "s18"],
+    "supersededTraps": ["dec-cache-redis"],
+    "staleTraps": ["s03", "s04"],
+    "note": "The Redis decision was superseded by SQLite; the Redis decision must not surface, and sessions written while Redis was in force are stale."
+  },
+  {
+    "id": "q02",
+    "query": "JWT access token lifetime",
+    "category": "superseded",
+    "expected": ["dec-auth-jwt-15m", "s22"],
+    "supersededTraps": ["dec-auth-jwt-24h"],
+    "staleTraps": ["s05"],
+    "note": "24 hour tokens were replaced by 15 minute tokens with refresh rotation."
+  },
+  {
+    "id": "q03",
+    "query": "email job queue",
+    "category": "superseded",
+    "expected": ["dec-queue-pg", "s26"],
+    "supersededTraps": ["dec-queue-rabbitmq"],
+    "staleTraps": ["s07"],
+    "note": "RabbitMQ was replaced by a Postgres SKIP LOCKED table."
+  },
+  {
+    "id": "q04",
+    "query": "why was Redis removed",
+    "category": "superseded",
+    "expected": ["dec-cache-sqlite", "s18"],
+    "supersededTraps": ["dec-cache-redis"],
+    "staleTraps": ["s03", "s04"],
+    "note": "Asks for the rationale; the superseding decision carries it in its context field."
+  },
+  {
+    "id": "q05",
+    "query": "refresh token rotation",
+    "category": "superseded",
+    "expected": ["dec-auth-jwt-15m", "s22", "s23"],
+    "supersededTraps": ["dec-auth-jwt-24h"],
+    "staleTraps": ["s05"]
+  },
+  {
+    "id": "q06",
+    "query": "RabbitMQ consumer crashes on broker restart",
+    "category": "superseded",
+    "expected": ["dec-queue-pg"],
+    "supersededTraps": ["dec-queue-rabbitmq"],
+    "staleTraps": ["s07"],
+    "note": "Mentions the obsolete technology by name; the current decision explains why it was dropped."
+  },
+  {
+    "id": "q07",
+    "query": "webhook retry backoff",
+    "category": "decision",
+    "expected": ["dec-webhook-retry", "s19"]
+  },
+  {
+    "id": "q08",
+    "query": "invoice pdf rendering",
+    "category": "decision",
+    "expected": ["dec-pdf-chromium", "s28"]
+  },
+  {
+    "id": "q09",
+    "query": "rate limit per api key",
+    "category": "decision",
+    "expected": ["dec-rate-limit", "s24"]
+  },
+  {
+    "id": "q10",
+    "query": "reminders fired at the wrong hour timezone",
+    "category": "session",
+    "expected": ["s13"]
+  },
+  {
+    "id": "q11",
+    "query": "csv import contacts",
+    "category": "session",
+    "expected": ["s15", "s17"]
+  },
+  {
+    "id": "q12",
+    "query": "translations plural rules ICU",
+    "category": "decision",
+    "expected": ["dec-i18n-icu", "s14"]
+  },
+  {
+    "id": "q13",
+    "query": "structured logging request id",
+    "category": "decision",
+    "expected": ["dec-logging-json", "s11"]
+  },
+  {
+    "id": "q14",
+    "query": "flaky integration test",
+    "category": "session",
+    "expected": ["s29"]
+  },
+  {
+    "id": "q15",
+    "query": "dark mode dashboard theme",
+    "category": "session",
+    "expected": ["s21"]
+  },
+  {
+    "id": "q16",
+    "query": "API versioning v1 prefix",
+    "category": "decision",
+    "expected": ["dec-api-versioning", "s10"]
+  },
+  {
+    "id": "q17",
+    "query": "cursor pagination contacts list",
+    "category": "session",
+    "expected": ["s30"]
+  },
+  {
+    "id": "q18",
+    "query": "GDPR data export",
+    "category": "session",
+    "expected": ["s20"]
+  }
+]
