@@ -135,6 +135,19 @@ Core commands:
 - `search <query>`
 - `hook print <target>`
 - `ui`
+- `obsidian [export|import|sync] [--vault <path>] [--prefer vault|bridge]`
+- `ce`
+
+### 8.1 Obsidian vault round-trip contract
+
+`obsidian export` (the default) writes `Decisions/<id>.md`, `Sessions/<date>-<tool>-<time>.md`, `Handoff.md` and `Project-Context.md` into the vault. `obsidian import` reads them back; `obsidian sync` imports first, then exports.
+
+- Decision notes carry `id`, `title`, `date` and `tags` in YAML frontmatter, `## Context` / `## Decision` / `## Impact` sections and a `**Supersedes:**` line of wikilinks. Import matches by `id`. A note without an `id` becomes a new decision and the generated `id` is written back into its frontmatter; later exports write to that file instead of creating `<id>.md`.
+- Session notes carry `tool`, `branch`, `date` and `tags`; import matches by `date + tool`. Tags `memory-bridge` and `session` are reserved and stripped on import.
+- `Handoff.md` is derived state: exported, never imported.
+- Round trip is lossless for the fields above: export → import → export produces byte-identical vault files. `workspace`, `taskId` and `parentTaskId` are not written to the vault and are preserved from the bridge side on update.
+- Import is idempotent. When a record differs on both sides, `--prefer vault` (default) replaces the bridge record in place (same `id`, no duplicate line); `--prefer bridge` leaves it and reports the conflict.
+- Redaction (§4.1) runs on imported content before it is persisted.
 
 ## 9. Wrapper Contract
 

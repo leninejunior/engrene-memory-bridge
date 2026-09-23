@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import path from "node:path";
 
-import type { BridgeConfig, SemanticProvider } from "../types/events.js";
+import type { BridgeConfig, IntegrationsConfig, SemanticProvider } from "../types/events.js";
 import {
   atomicWriteFile,
   ensureDirSecure,
@@ -62,6 +62,31 @@ export function defaultConfig(projectName: string): BridgeConfig {
   };
 }
 
+function normalizeIntegrations(raw: unknown): IntegrationsConfig | undefined {
+  if (typeof raw !== "object" || raw === null) {
+    return undefined;
+  }
+  const source = raw as Record<string, unknown>;
+  const out: IntegrationsConfig = {};
+
+  if (typeof source.ce === "object" && source.ce !== null) {
+    const ce = source.ce as Record<string, unknown>;
+    out.ce = { ...(typeof ce.autoSync === "boolean" ? { autoSync: ce.autoSync } : {}) };
+  }
+
+  if (typeof source.obsidian === "object" && source.obsidian !== null) {
+    const obsidian = source.obsidian as Record<string, unknown>;
+    out.obsidian = {
+      ...(typeof obsidian.autoSync === "boolean" ? { autoSync: obsidian.autoSync } : {}),
+      ...(typeof obsidian.vaultDir === "string" && obsidian.vaultDir.trim() !== "" ? { vaultDir: obsidian.vaultDir } : {}),
+      ...(typeof obsidian.autoImport === "boolean" ? { autoImport: obsidian.autoImport } : {}),
+      ...(obsidian.prefer === "vault" || obsidian.prefer === "bridge" ? { prefer: obsidian.prefer } : {})
+    };
+  }
+
+  return out;
+}
+
 export async function loadConfig(workspace: string): Promise<ConfigLoadResult> {
   const paths = resolveBridgePaths(path.resolve(workspace));
   const warnings: string[] = [];
@@ -77,6 +102,7 @@ export async function loadConfig(workspace: string): Promise<ConfigLoadResult> {
   }
 
   const isSemanticEnabled = parsed.semanticSearch?.enabled ?? false;
+  const integrations = normalizeIntegrations(parsed.integrations);
   const config: BridgeConfig = {
     schemaVersion: parsed.schemaVersion || "1.0.0",
     projectName: normalizeProjectName(parsed.projectName || path.basename(paths.workspace)),
@@ -110,7 +136,8 @@ export async function loadConfig(workspace: string): Promise<ConfigLoadResult> {
               : DEFAULT_CAPTURE_CONFIG.exclude
           }
         }
-      : {})
+      : {}),
+    ...(integrations ? { integrations } : {})
   };
 
   return { config, paths, warnings };

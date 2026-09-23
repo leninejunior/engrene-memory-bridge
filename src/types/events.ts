@@ -60,6 +60,10 @@ export interface IntegrationsConfig {
   obsidian?: {
     autoSync?: boolean;
     vaultDir?: string;
+    /** When true, `resume` pulls vault edits into `.memory-bridge/` before building the snapshot. */
+    autoImport?: boolean;
+    /** Conflict rule for import: who wins when the same record differs on both sides. Default: "vault". */
+    prefer?: "vault" | "bridge";
   };
 }
 

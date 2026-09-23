@@ -19,7 +19,7 @@ import { appendObservation } from "../core/capture.js";
 import { getMemoryStats } from "../core/stats.js";
 import { startMcpServer } from "../mcp/server.js";
 import { startUiServer } from "../ui/server.js";
-import { syncObsidianVault } from "../core/obsidian.js";
+import { importObsidianVault, syncObsidianVault, type ObsidianImportPreference } from "../core/obsidian.js";
 import { syncCompoundEngineering } from "../core/ce.js";
 import { runAutoSyncIntegrations } from "../core/auto-sync.js";
 import { installToolIntegration } from "./install.js";
@@ -44,7 +44,7 @@ Commands:
   install <hermes|antigravity> [--workspace <path>] [--json]
   hook print <zsh|bash|fish|aider|claude|git|antigravity|hermes|qwen|cursor|mcp> [--json]
   ui [--workspace <path>] [--host <host>] [--port <n>] [--readonly] [--json]
-  obsidian [--vault <path>] [--workspace <path>] [--json]
+  obsidian [export|import|sync] [--vault <path>] [--prefer vault|bridge] [--workspace <path>] [--json]
   ce [--workspace <path>] [--json]
 `;
 }
@@ -284,8 +284,19 @@ async function commandResume(argv: string[], asJson: boolean): Promise<void> {
   const targetTool = requireString(getStringFlag(parsed, "for"), "--for", asJson);
   const { config, warnings: configWarnings } = await loadConfig(workspace);
 
+  const importWarnings: string[] = [];
+  const obsidianVault = config.integrations?.obsidian?.vaultDir;
+  if (config.integrations?.obsidian?.autoImport === true && obsidianVault) {
+    try {
+      const pulled = await importObsidianVault(workspace, config, obsidianVault);
+      importWarnings.push(...pulled.warnings);
+    } catch (err) {
+      importWarnings.push(`Obsidian auto-import failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
   const context = await buildContextSnapshot(workspace, config);
-  const mergedWarnings = [...configWarnings, ...context.snapshot.warnings];
+  const mergedWarnings = [...configWarnings, ...importWarnings, ...context.snapshot.warnings];
   const snapshot = { ...context.snapshot, warnings: mergedWarnings };
   const resumeText = renderResumeText(targetTool, snapshot);
 
@@ -811,23 +822,58 @@ async function main(): Promise<void> {
 async function commandObsidian(argv: string[], asJson: boolean): Promise<void> {
   const parsed = parseArgs(argv);
   const workspace = normalizeWorkspace(getStringFlag(parsed, "workspace"));
-  const vaultDir = getStringFlag(parsed, "vault") || path.join(workspace, ".obsidian-vault");
   const { config } = await loadConfig(workspace);
+  const vaultDir =
+    getStringFlag(parsed, "vault") || config.integrations?.obsidian?.vaultDir || path.join(workspace, ".obsidian-vault");
 
-  const result = await syncObsidianVault(workspace, config, vaultDir);
+  const subcommand = (parsed.positionals[0] || "export").toLowerCase();
+  const direction =
+    subcommand === "export" || subcommand === "push"
+      ? "export"
+      : subcommand === "import" || subcommand === "pull"
+        ? "import"
+        : subcommand === "sync" || subcommand === "both"
+          ? "sync"
+          : undefined;
+  if (!direction) {
+    fail(`Unknown obsidian subcommand: ${subcommand}. Use export, import or sync.`, asJson);
+  }
 
-  printOutput(
-    {
-      ok: true,
-      command: "obsidian",
-      workspace,
-      vaultDir: result.vaultDir,
-      createdFiles: result.createdFiles,
-      totalDecisions: result.totalDecisions,
-      totalSessions: result.totalSessions
-    },
-    asJson
-  );
+  const preferRaw = getStringFlag(parsed, "prefer");
+  if (preferRaw !== undefined && preferRaw !== "vault" && preferRaw !== "bridge") {
+    fail(`Invalid --prefer value: ${preferRaw}. Use vault or bridge.`, asJson);
+  }
+  const prefer = preferRaw as ObsidianImportPreference | undefined;
+
+  const output: Record<string, unknown> = {
+    ok: true,
+    command: `obsidian ${direction}`,
+    workspace,
+    vaultDir: path.resolve(vaultDir)
+  };
+
+  if (direction === "import" || direction === "sync") {
+    const imported = await importObsidianVault(workspace, config, vaultDir, prefer ? { prefer } : {});
+    output.import = {
+      scannedFiles: imported.scannedFiles,
+      created: imported.created,
+      updated: imported.updated,
+      unchanged: imported.unchanged,
+      skippedConflicts: imported.skippedConflicts,
+      assignedIds: imported.assignedIds,
+      projectContext: imported.projectContext,
+      warnings: imported.warnings
+    };
+  }
+
+  if (direction === "export" || direction === "sync") {
+    const exported = await syncObsidianVault(workspace, config, vaultDir);
+    output.createdFiles = exported.createdFiles;
+    output.totalDecisions = exported.totalDecisions;
+    output.totalSessions = exported.totalSessions;
+  }
+
+  printOutput(output, asJson);
 }
 
 async function commandCe(argv: string[], asJson: boolean): Promise<void> {
