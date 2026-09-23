@@ -29,7 +29,7 @@ All memory artifacts are plain JSONL and Markdown inside `.memory-bridge/`, so t
 - Secret redaction runs before anything is written, and optional encryption (see Privacy & Security) protects committed memory.
 
 ### 3. 🔓 Zero Vendor Lock-in & Zero Runtime Dependencies
-- Operates **100% offline** using standard Node.js 20+ built-ins (`node:sqlite`, `node:crypto`, `node:fs`).
+- Operates **100% offline** using standard Node.js built-ins (`node:crypto`, `node:fs`, and `node:sqlite`). Note: `node:sqlite` ships with Node.js 22.5+. On Node.js 20 the CLI still works, but FTS5, semantic and hybrid search fall back to in-memory BM25.
 - No heavy Docker containers, no paid cloud memory APIs, no API key leaks.
 
 ---

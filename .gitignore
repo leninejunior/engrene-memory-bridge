@@ -4,3 +4,4 @@ dist/
 .memory-bridge/.lock
 .memory-bridge/observations/
 *.tgz
+scratch/

@@ -1,7 +1,7 @@
 # Handoff
 
 ## Objective
-Mesclar PR #8 e versionar a memória deste repo
+Reduzir o peso do repositório apontado no review externo
 
 ## Recent Decisions
 - [dec-muc3rsh5] Obsidian Vault Export & JEV BM25 Hybrid Provider Support: Added optional Obsidian vault sync (memory-bridge obsidian --vault <path>) exporting Markdown notes with YAML frontmatter and wikilinks, and added 'jev' semantic provider option for joint code-text search combined with BM25 SQLite FTS5.
@@ -25,9 +25,6 @@ Mesclar PR #8 e versionar a memória deste repo
 - updated README.md
 
 ## Recent Artifacts
-- src/core/obsidian.ts
-- src/core/config.ts
-- src/core/store.ts
 - tests/unit/obsidian-import.test.ts
 - https://github.com/leninejunior/engrene-memory-bridge/releases/tag/v0.3.0
 - https://github.com/leninejunior/engrene-memory-bridge/pull/8
@@ -36,4 +33,7 @@ Mesclar PR #8 e versionar a memória deste repo
 - src/core/config.ts
 - src/core/redaction.ts
 - tests/unit/gitignore-optin-and-leak-detection.test.ts
+- .gitignore
+- assets/screenshots/
+- README.md
 - .gitignore
