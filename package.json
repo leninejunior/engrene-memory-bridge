@@ -59,6 +59,7 @@
     "test:unit": "npm run build && node --test dist/tests/unit/*.test.js",
     "test:integration": "npm run build && node --test dist/tests/integration/*.test.js",
     "smoke:local": "npm run build && node dist/tests/integration/smoke-real-workspace.smoke.js",
+    "bench": "npm run build && node dist/tests/benchmark/run.js",
     "prepare": "npm run build",
     "ui": "npm run build && node dist/src/cli/bin.js ui"
   },

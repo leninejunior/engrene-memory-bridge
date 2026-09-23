@@ -1,0 +1,4102 @@
+{
+  "schema": "memory-bridge-benchmark/1",
+  "generatedAt": "2026-09-23T02:04:39.910Z",
+  "node": "v24.21.0",
+  "platform": "linux",
+  "arch": "x64",
+  "sqliteSupported": true,
+  "source": "fixtures",
+  "workspace": "/tmp/mb-bench-0pY1rS",
+  "keptWorkspace": false,
+  "runs": 7,
+  "limit": 5,
+  "corpus": {
+    "sessions": 31,
+    "decisions": 12,
+    "activeDecisions": 9,
+    "supersededDecisions": 3,
+    "supersedesLinks": 3,
+    "tools": [
+      "antigravity",
+      "claude",
+      "codex",
+      "gemini",
+      "hermes",
+      "qwen"
+    ]
+  },
+  "queryCount": 18,
+  "variants": [
+    {
+      "variant": "text",
+      "mode": "text",
+      "label": "text (in-memory BM25, default init)",
+      "semanticEnabled": false,
+      "precisionAt3": 0.537,
+      "recallAt5": 0.972,
+      "mrr": 0.944,
+      "noiseAt5": 0.667,
+      "maxPrecisionAt3": 0.574,
+      "minNoiseAt5": 0.656,
+      "supersededLeakRate": 0,
+      "supersededLeakQueries": 0,
+      "supersededTrapQueries": 6,
+      "staleLeakRate": 0.667,
+      "staleLeakQueries": 4,
+      "staleTrapQueries": 6,
+      "fullRecallQueries": 17,
+      "queriesWithWarnings": 0,
+      "unstableQueries": 0,
+      "latencyMs": {
+        "samples": 126,
+        "p50": 7.85,
+        "p95": 12.31,
+        "min": 5.92,
+        "max": 20.69,
+        "mean": 8.57
+      },
+      "queries": [
+        {
+          "id": "q01",
+          "query": "session cache",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-cache-sqlite",
+            "session:2026-08-04T15:00:00.000Z"
+          ],
+          "supersededTraps": [
+            "decision:dec-cache-redis"
+          ],
+          "staleTraps": [
+            "session:2026-07-08T16:30:00.000Z",
+            "session:2026-07-09T10:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "session:2026-07-08T16:30:00.000Z",
+              "source": "sessions",
+              "score": 7.4718,
+              "snippet": "Wire Redis as the login session cache Login sessions now live in Redis with a 12"
+            },
+            {
+              "ref": "decision:dec-cache-sqlite",
+              "source": "decisions",
+              "score": 7.2981,
+              "snippet": "Replace the Redis session cache with embedded SQLite Redis was the only external"
+            },
+            {
+              "ref": "session:2026-08-04T15:00:00.000Z",
+              "source": "sessions",
+              "score": 7.0853,
+              "snippet": "Migrate the session cache from Redis to embedded SQLite Login sessions moved fro"
+            },
+            {
+              "ref": "session:2026-07-09T10:00:00.000Z",
+              "source": "sessions",
+              "score": 1.6858,
+              "snippet": "Review the Redis session middleware Review of the Redis session store: reconnect"
+            },
+            {
+              "ref": "session:2026-07-06T09:00:00.000Z",
+              "source": "sessions",
+              "score": 1.4865,
+              "snippet": "Bootstrap the orbit-crm API skeleton API skeleton with a health endpoint and a P"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 0.5,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": true,
+          "leakedRefs": [
+            "session:2026-07-08T16:30:00.000Z"
+          ],
+          "lexicalBackend": "bm25-memory",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 11.61
+        },
+        {
+          "id": "q02",
+          "query": "JWT access token lifetime",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-auth-jwt-15m",
+            "session:2026-08-11T17:00:00.000Z"
+          ],
+          "supersededTraps": [
+            "decision:dec-auth-jwt-24h"
+          ],
+          "staleTraps": [
+            "session:2026-07-10T11:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "session:2026-07-10T11:00:00.000Z",
+              "source": "sessions",
+              "score": 5.9758,
+              "snippet": "Issue JWT access tokens with a 24 hour lifetime Login returns a JWT access token"
+            },
+            {
+              "ref": "decision:dec-auth-jwt-15m",
+              "source": "decisions",
+              "score": 5.3125,
+              "snippet": "Shorten JWT access tokens to 15 minutes with refresh rotation Security review fl"
+            },
+            {
+              "ref": "session:2026-08-11T17:00:00.000Z",
+              "source": "sessions",
+              "score": 4.8459,
+              "snippet": "Shorten access tokens to 15 minutes and add refresh rotation Access tokens now e"
+            },
+            {
+              "ref": "session:2026-08-14T15:00:00.000Z",
+              "source": "sessions",
+              "score": 2.3342,
+              "snippet": "Document the authentication flow and rate limits Auth docs cover 15 minute acces"
+            },
+            {
+              "ref": "handoff.md",
+              "source": "handoff",
+              "score": 2.162,
+              "snippet": "# Handoff ## Objective Ship orbit-crm v1.0 on the simplified single-process stac"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 0.5,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": true,
+          "leakedRefs": [
+            "session:2026-07-10T11:00:00.000Z"
+          ],
+          "lexicalBackend": "bm25-memory",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 8.85
+        },
+        {
+          "id": "q03",
+          "query": "email job queue",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-queue-pg",
+            "session:2026-08-18T11:30:00.000Z"
+          ],
+          "supersededTraps": [
+            "decision:dec-queue-rabbitmq"
+          ],
+          "staleTraps": [
+            "session:2026-07-15T15:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "decision:dec-queue-pg",
+              "source": "decisions",
+              "score": 8.6355,
+              "snippet": "Move the email job queue to a Postgres table with SKIP LOCKED RabbitMQ was under"
+            },
+            {
+              "ref": "handoff.md",
+              "source": "handoff",
+              "score": 7.2487,
+              "snippet": "00 requests per minute per API key on all /v1 routes. - [dec-queue-pg] Move the "
+            },
+            {
+              "ref": "session:2026-08-18T11:30:00.000Z",
+              "source": "sessions",
+              "score": 4.161,
+              "snippet": "Replace RabbitMQ with a Postgres job queue Email jobs moved from RabbitMQ to a P"
+            },
+            {
+              "ref": "session:2026-07-13T09:30:00.000Z",
+              "source": "sessions",
+              "score": 3.8071,
+              "snippet": "Coordinate sprint 2: campaigns and reminders Sprint 2 planned around campaign em"
+            },
+            {
+              "ref": "session:2026-08-19T09:20:00.000Z",
+              "source": "sessions",
+              "score": 3.0986,
+              "snippet": "Verify the queue migration and close sprint 3 Sprint 3 closed; RabbitMQ fully re"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "bm25-memory",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 8.29
+        },
+        {
+          "id": "q04",
+          "query": "why was Redis removed",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-cache-sqlite",
+            "session:2026-08-04T15:00:00.000Z"
+          ],
+          "supersededTraps": [
+            "decision:dec-cache-redis"
+          ],
+          "staleTraps": [
+            "session:2026-07-08T16:30:00.000Z",
+            "session:2026-07-09T10:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "decision:dec-cache-sqlite",
+              "source": "decisions",
+              "score": 3.5849,
+              "snippet": "Replace the Redis session cache with embedded SQLite Redis was the only external"
+            },
+            {
+              "ref": "session:2026-07-09T10:00:00.000Z",
+              "source": "sessions",
+              "score": 2.9393,
+              "snippet": "Review the Redis session middleware Review of the Redis session store: reconnect"
+            },
+            {
+              "ref": "session:2026-08-04T15:00:00.000Z",
+              "source": "sessions",
+              "score": 2.7648,
+              "snippet": "Migrate the session cache from Redis to embedded SQLite Login sessions moved fro"
+            },
+            {
+              "ref": "session:2026-07-08T16:30:00.000Z",
+              "source": "sessions",
+              "score": 1.8048,
+              "snippet": "Wire Redis as the login session cache Login sessions now live in Redis with a 12"
+            },
+            {
+              "ref": "session:2026-08-18T11:30:00.000Z",
+              "source": "sessions",
+              "score": 1.3815,
+              "snippet": "Replace RabbitMQ with a Postgres job queue Email jobs moved from RabbitMQ to a P"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": true,
+          "leakedRefs": [
+            "session:2026-07-09T10:00:00.000Z"
+          ],
+          "lexicalBackend": "bm25-memory",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 9.33
+        },
+        {
+          "id": "q05",
+          "query": "refresh token rotation",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-auth-jwt-15m",
+            "session:2026-08-11T17:00:00.000Z",
+            "session:2026-08-12T10:30:00.000Z"
+          ],
+          "supersededTraps": [
+            "decision:dec-auth-jwt-24h"
+          ],
+          "staleTraps": [
+            "session:2026-07-10T11:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "session:2026-08-12T10:30:00.000Z",
+              "source": "sessions",
+              "score": 10.0455,
+              "snippet": "Review refresh token rotation for replay attacks Refresh rotation reviewed; reus"
+            },
+            {
+              "ref": "decision:dec-auth-jwt-15m",
+              "source": "decisions",
+              "score": 4.2987,
+              "snippet": "Shorten JWT access tokens to 15 minutes with refresh rotation Security review fl"
+            },
+            {
+              "ref": "session:2026-08-14T15:00:00.000Z",
+              "source": "sessions",
+              "score": 3.8593,
+              "snippet": "Document the authentication flow and rate limits Auth docs cover 15 minute acces"
+            },
+            {
+              "ref": "session:2026-08-11T17:00:00.000Z",
+              "source": "sessions",
+              "score": 3.7651,
+              "snippet": "Shorten access tokens to 15 minutes and add refresh rotation Access tokens now e"
+            },
+            {
+              "ref": "session:2026-07-10T11:00:00.000Z",
+              "source": "sessions",
+              "score": 2.5009,
+              "snippet": "Issue JWT access tokens with a 24 hour lifetime Login returns a JWT access token"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.4,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "bm25-memory",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 8.26
+        },
+        {
+          "id": "q06",
+          "query": "RabbitMQ consumer crashes on broker restart",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-queue-pg"
+          ],
+          "supersededTraps": [
+            "decision:dec-queue-rabbitmq"
+          ],
+          "staleTraps": [
+            "session:2026-07-15T15:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "decision:dec-queue-pg",
+              "source": "decisions",
+              "score": 3.8428,
+              "snippet": "Move the email job queue to a Postgres table with SKIP LOCKED RabbitMQ was under"
+            },
+            {
+              "ref": "session:2026-08-18T11:30:00.000Z",
+              "source": "sessions",
+              "score": 3.5908,
+              "snippet": "Replace RabbitMQ with a Postgres job queue Email jobs moved from RabbitMQ to a P"
+            },
+            {
+              "ref": "session:2026-07-15T15:00:00.000Z",
+              "source": "sessions",
+              "score": 2.8555,
+              "snippet": "RabbitMQ consumer for campaign emails Campaign emails are published to RabbitMQ "
+            },
+            {
+              "ref": "project-context.md",
+              "source": "project-context",
+              "score": 2.3342,
+              "snippet": "# Project Context ## Current Objective Ship orbit-crm v1.0 on the simplified sin"
+            },
+            {
+              "ref": "session:2026-08-19T09:20:00.000Z",
+              "source": "sessions",
+              "score": 1.5493,
+              "snippet": "Verify the queue migration and close sprint 3 Sprint 3 closed; RabbitMQ fully re"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.8,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": true,
+          "leakedRefs": [
+            "session:2026-07-15T15:00:00.000Z"
+          ],
+          "lexicalBackend": "bm25-memory",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 7.06
+        },
+        {
+          "id": "q07",
+          "query": "webhook retry backoff",
+          "category": "decision",
+          "expected": [
+            "decision:dec-webhook-retry",
+            "session:2026-08-06T10:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "decision:dec-webhook-retry",
+              "source": "decisions",
+              "score": 4.2649,
+              "snippet": "Retry webhook deliveries with exponential backoff Customer endpoints go down for"
+            },
+            {
+              "ref": "session:2026-08-06T10:00:00.000Z",
+              "source": "sessions",
+              "score": 4.2094,
+              "snippet": "Webhook delivery with exponential backoff retries Webhooks retry with exponentia"
+            },
+            {
+              "ref": "handoff.md",
+              "source": "handoff",
+              "score": 2.2487,
+              "snippet": "# Handoff ## Objective Ship orbit-crm v1.0 on the simplified single-process stac"
+            },
+            {
+              "ref": "session:2026-08-01T09:45:00.000Z",
+              "source": "sessions",
+              "score": 1.186,
+              "snippet": "Sprint 3 kickoff: webhooks, exports and stability Sprint 3 planned around webhoo"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "bm25-memory",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 7.28
+        },
+        {
+          "id": "q08",
+          "query": "invoice pdf rendering",
+          "category": "decision",
+          "expected": [
+            "decision:dec-pdf-chromium",
+            "session:2026-08-20T17:30:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-20T17:30:00.000Z",
+              "source": "sessions",
+              "score": 9.4347,
+              "snippet": "Server side invoice PDF rendering with headless Chromium Invoice PDFs render ser"
+            },
+            {
+              "ref": "decision:dec-pdf-chromium",
+              "source": "decisions",
+              "score": 2.9139,
+              "snippet": "Render invoice PDFs server side with headless Chromium The client side PDF libra"
+            },
+            {
+              "ref": "handoff.md",
+              "source": "handoff",
+              "score": 1.2013,
+              "snippet": "# Handoff ## Objective Ship orbit-crm v1.0 on the simplified single-process stac"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "bm25-memory",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 7.05
+        },
+        {
+          "id": "q09",
+          "query": "rate limit per api key",
+          "category": "decision",
+          "expected": [
+            "decision:dec-rate-limit",
+            "session:2026-08-13T13:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-13T13:00:00.000Z",
+              "source": "sessions",
+              "score": 6.8014,
+              "snippet": "Token bucket rate limiter per API key All /v1 routes are rate limited per API ke"
+            },
+            {
+              "ref": "decision:dec-rate-limit",
+              "source": "decisions",
+              "score": 5.7028,
+              "snippet": "Token bucket rate limiting per API key One partner script hammered the contacts "
+            },
+            {
+              "ref": "session:2026-08-14T15:00:00.000Z",
+              "source": "sessions",
+              "score": 3.8593,
+              "snippet": "Document the authentication flow and rate limits Auth docs cover 15 minute acces"
+            },
+            {
+              "ref": "handoff.md",
+              "source": "handoff",
+              "score": 3.2802,
+              "snippet": "# Handoff ## Objective Ship orbit-crm v1.0 on the simplified single-process stac"
+            },
+            {
+              "ref": "decision:dec-api-versioning",
+              "source": "decisions",
+              "score": 2.7452,
+              "snippet": "Version the public API by URL prefix Partners integrate against the REST API and"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "bm25-memory",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 7.53
+        },
+        {
+          "id": "q10",
+          "query": "reminders fired at the wrong hour timezone",
+          "category": "session",
+          "expected": [
+            "session:2026-07-27T10:30:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-07-27T10:30:00.000Z",
+              "source": "sessions",
+              "score": 9.7583,
+              "snippet": "Fix the timezone bug in the reminder scheduler Fixed reminders firing at the wro"
+            },
+            {
+              "ref": "session:2026-07-13T09:30:00.000Z",
+              "source": "sessions",
+              "score": 3.2999,
+              "snippet": "Coordinate sprint 2: campaigns and reminders Sprint 2 planned around campaign em"
+            },
+            {
+              "ref": "decision:dec-cache-sqlite",
+              "source": "decisions",
+              "score": 2.8552,
+              "snippet": "Replace the Redis session cache with embedded SQLite Redis was the only external"
+            },
+            {
+              "ref": "session:2026-08-14T15:00:00.000Z",
+              "source": "sessions",
+              "score": 2.6922,
+              "snippet": "Document the authentication flow and rate limits Auth docs cover 15 minute acces"
+            },
+            {
+              "ref": "decision:dec-auth-jwt-15m",
+              "source": "decisions",
+              "score": 2.5966,
+              "snippet": "Shorten JWT access tokens to 15 minutes with refresh rotation Security review fl"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.8,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "bm25-memory",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 6.75
+        },
+        {
+          "id": "q11",
+          "query": "csv import contacts",
+          "category": "session",
+          "expected": [
+            "session:2026-07-30T11:00:00.000Z",
+            "session:2026-08-03T14:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-07-30T11:00:00.000Z",
+              "source": "sessions",
+              "score": 5.3017,
+              "snippet": "CSV import for contacts Contacts can be imported from CSV in batches with a reje"
+            },
+            {
+              "ref": "session:2026-08-24T10:00:00.000Z",
+              "source": "sessions",
+              "score": 3.9131,
+              "snippet": "Fix the flaky contacts import integration test Flaky CSV import test fixed by so"
+            },
+            {
+              "ref": "session:2026-08-26T14:00:00.000Z",
+              "source": "sessions",
+              "score": 1.9048,
+              "snippet": "Cursor pagination for the contacts list The contacts list uses cursor pagination"
+            },
+            {
+              "ref": "session:2026-07-07T14:00:00.000Z",
+              "source": "sessions",
+              "score": 1.8787,
+              "snippet": "Contacts table migration and CRUD routes Contacts CRUD is live on top of a plain"
+            },
+            {
+              "ref": "session:2026-07-17T14:20:00.000Z",
+              "source": "sessions",
+              "score": 1.8739,
+              "snippet": "Contacts list page with table and filters The contacts page renders the list wit"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 0.5,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.8,
+          "missing": [
+            "session:2026-08-03T14:00:00.000Z"
+          ],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "bm25-memory",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 7.39
+        },
+        {
+          "id": "q12",
+          "query": "translations plural rules ICU",
+          "category": "decision",
+          "expected": [
+            "decision:dec-i18n-icu",
+            "session:2026-07-28T15:30:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-07-28T15:30:00.000Z",
+              "source": "sessions",
+              "score": 5.7028,
+              "snippet": "Extract translations to ICU message format Translations use ICU message format; "
+            },
+            {
+              "ref": "decision:dec-i18n-icu",
+              "source": "decisions",
+              "score": 5.6252,
+              "snippet": "Use ICU message format for translations Plural rules differ between Portuguese, "
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "bm25-memory",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 7.95
+        },
+        {
+          "id": "q13",
+          "query": "structured logging request id",
+          "category": "decision",
+          "expected": [
+            "decision:dec-logging-json",
+            "session:2026-07-22T09:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-07-22T09:00:00.000Z",
+              "source": "sessions",
+              "score": 5.4609,
+              "snippet": "Structured JSON logging middleware Every log line is JSON with level, message, r"
+            },
+            {
+              "ref": "decision:dec-logging-json",
+              "source": "decisions",
+              "score": 4.1433,
+              "snippet": "Structured JSON logs with a request id Debugging a support ticket meant grepping"
+            },
+            {
+              "ref": "session:2026-07-24T16:00:00.000Z",
+              "source": "sessions",
+              "score": 1.1957,
+              "snippet": "Write API docs for /v1 contacts and campaigns API reference for the contacts and"
+            },
+            {
+              "ref": "session:2026-08-26T14:00:00.000Z",
+              "source": "sessions",
+              "score": 1.1399,
+              "snippet": "Cursor pagination for the contacts list The contacts list uses cursor pagination"
+            },
+            {
+              "ref": "decision:dec-webhook-retry",
+              "source": "decisions",
+              "score": 1.0501,
+              "snippet": "Retry webhook deliveries with exponential backoff Customer endpoints go down for"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "bm25-memory",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 11.69
+        },
+        {
+          "id": "q14",
+          "query": "flaky integration test",
+          "category": "session",
+          "expected": [
+            "session:2026-08-24T10:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-24T10:00:00.000Z",
+              "source": "sessions",
+              "score": 5.132,
+              "snippet": "Fix the flaky contacts import integration test Flaky CSV import test fixed by so"
+            },
+            {
+              "ref": "session:2026-07-08T16:30:00.000Z",
+              "source": "sessions",
+              "score": 1.0501,
+              "snippet": "Wire Redis as the login session cache Login sessions now live in Redis with a 12"
+            },
+            {
+              "ref": "handoff.md",
+              "source": "handoff",
+              "score": 0.9035,
+              "snippet": "# Handoff ## Objective Ship orbit-crm v1.0 on the simplified single-process stac"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.8,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "bm25-memory",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 7.16
+        },
+        {
+          "id": "q15",
+          "query": "dark mode dashboard theme",
+          "category": "session",
+          "expected": [
+            "session:2026-08-10T09:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-10T09:00:00.000Z",
+              "source": "sessions",
+              "score": 6.4479,
+              "snippet": "Dark mode for the dashboard The dashboard supports dark mode through CSS tokens "
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.8,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "bm25-memory",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 7.63
+        },
+        {
+          "id": "q16",
+          "query": "API versioning v1 prefix",
+          "category": "decision",
+          "expected": [
+            "decision:dec-api-versioning",
+            "session:2026-07-20T13:30:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-07-20T13:30:00.000Z",
+              "source": "sessions",
+              "score": 5.6594,
+              "snippet": "Freeze /v1 routes and add the version prefix The public API is served under /v1;"
+            },
+            {
+              "ref": "decision:dec-api-versioning",
+              "source": "decisions",
+              "score": 4.2094,
+              "snippet": "Version the public API by URL prefix Partners integrate against the REST API and"
+            },
+            {
+              "ref": "session:2026-07-24T16:00:00.000Z",
+              "source": "sessions",
+              "score": 3.3675,
+              "snippet": "Write API docs for /v1 contacts and campaigns API reference for the contacts and"
+            },
+            {
+              "ref": "session:2026-08-13T13:00:00.000Z",
+              "source": "sessions",
+              "score": 2.9538,
+              "snippet": "Token bucket rate limiter per API key All /v1 routes are rate limited per API ke"
+            },
+            {
+              "ref": "project-context.md",
+              "source": "project-context",
+              "score": 2.6922,
+              "snippet": "# Project Context ## Current Objective Ship orbit-crm v1.0 on the simplified sin"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "bm25-memory",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 7.08
+        },
+        {
+          "id": "q17",
+          "query": "cursor pagination contacts list",
+          "category": "session",
+          "expected": [
+            "session:2026-08-26T14:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-26T14:00:00.000Z",
+              "source": "sessions",
+              "score": 6.8708,
+              "snippet": "Cursor pagination for the contacts list The contacts list uses cursor pagination"
+            },
+            {
+              "ref": "session:2026-07-17T14:20:00.000Z",
+              "source": "sessions",
+              "score": 3.407,
+              "snippet": "Contacts list page with table and filters The contacts page renders the list wit"
+            },
+            {
+              "ref": "session:2026-07-07T14:00:00.000Z",
+              "source": "sessions",
+              "score": 3.0647,
+              "snippet": "Contacts table migration and CRUD routes Contacts CRUD is live on top of a plain"
+            },
+            {
+              "ref": "session:2026-08-03T14:00:00.000Z",
+              "source": "sessions",
+              "score": 1.8692,
+              "snippet": "Deduplicate imported contacts by email Duplicate contacts merged by email with a"
+            },
+            {
+              "ref": "session:2026-07-30T11:00:00.000Z",
+              "source": "sessions",
+              "score": 1.8014,
+              "snippet": "CSV import for contacts Contacts can be imported from CSV in batches with a reje"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.8,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "bm25-memory",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 7.71
+        },
+        {
+          "id": "q18",
+          "query": "GDPR data export",
+          "category": "session",
+          "expected": [
+            "session:2026-08-07T16:30:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-07T16:30:00.000Z",
+              "source": "sessions",
+              "score": 9.9194,
+              "snippet": "GDPR data export endpoint Users can export all of their data as a zip archive. P"
+            },
+            {
+              "ref": "session:2026-08-01T09:45:00.000Z",
+              "source": "sessions",
+              "score": 3.0823,
+              "snippet": "Sprint 3 kickoff: webhooks, exports and stability Sprint 3 planned around webhoo"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.8,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "bm25-memory",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 8.4
+        }
+      ]
+    },
+    {
+      "variant": "text-fts5",
+      "mode": "text",
+      "label": "text (SQLite FTS5, init --semantic)",
+      "semanticEnabled": true,
+      "precisionAt3": 0.556,
+      "recallAt5": 1,
+      "mrr": 0.972,
+      "noiseAt5": 0.656,
+      "maxPrecisionAt3": 0.574,
+      "minNoiseAt5": 0.656,
+      "supersededLeakRate": 0,
+      "supersededLeakQueries": 0,
+      "supersededTrapQueries": 6,
+      "staleLeakRate": 0.667,
+      "staleLeakQueries": 4,
+      "staleTrapQueries": 6,
+      "fullRecallQueries": 18,
+      "queriesWithWarnings": 0,
+      "unstableQueries": 0,
+      "latencyMs": {
+        "samples": 126,
+        "p50": 11.12,
+        "p95": 18.95,
+        "min": 7.36,
+        "max": 31.74,
+        "mean": 11.96
+      },
+      "queries": [
+        {
+          "id": "q01",
+          "query": "session cache",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-cache-sqlite",
+            "session:2026-08-04T15:00:00.000Z"
+          ],
+          "supersededTraps": [
+            "decision:dec-cache-redis"
+          ],
+          "staleTraps": [
+            "session:2026-07-08T16:30:00.000Z",
+            "session:2026-07-09T10:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "decision:dec-cache-sqlite",
+              "source": "decisions",
+              "score": 0.2158,
+              "snippet": "Replace the Redis session cache with embedded SQLite Redis was the only external"
+            },
+            {
+              "ref": "session:2026-07-08T16:30:00.000Z",
+              "source": "sessions",
+              "score": 0.2996,
+              "snippet": "Wire Redis as the login session cache Login sessions now live in Redis with a 12"
+            },
+            {
+              "ref": "session:2026-08-04T15:00:00.000Z",
+              "source": "sessions",
+              "score": 0.3009,
+              "snippet": "Migrate the session cache from Redis to embedded SQLite Login sessions moved fro"
+            },
+            {
+              "ref": "session:2026-07-09T10:00:00.000Z",
+              "source": "sessions",
+              "score": 1,
+              "snippet": "Review the Redis session middleware Review of the Redis session store: reconnect"
+            },
+            {
+              "ref": "session:2026-07-06T09:00:00.000Z",
+              "source": "sessions",
+              "score": 1,
+              "snippet": "Bootstrap the orbit-crm API skeleton API skeleton with a health endpoint and a P"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": true,
+          "leakedRefs": [
+            "session:2026-07-08T16:30:00.000Z"
+          ],
+          "lexicalBackend": "fts5",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 8.69
+        },
+        {
+          "id": "q02",
+          "query": "JWT access token lifetime",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-auth-jwt-15m",
+            "session:2026-08-11T17:00:00.000Z"
+          ],
+          "supersededTraps": [
+            "decision:dec-auth-jwt-24h"
+          ],
+          "staleTraps": [
+            "session:2026-07-10T11:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "session:2026-07-10T11:00:00.000Z",
+              "source": "sessions",
+              "score": 0.1,
+              "snippet": "Issue JWT access tokens with a 24 hour lifetime Login returns a JWT access token"
+            },
+            {
+              "ref": "decision:dec-auth-jwt-15m",
+              "source": "decisions",
+              "score": 0.1,
+              "snippet": "Shorten JWT access tokens to 15 minutes with refresh rotation Security review fl"
+            },
+            {
+              "ref": "session:2026-08-11T17:00:00.000Z",
+              "source": "sessions",
+              "score": 0.1,
+              "snippet": "Shorten access tokens to 15 minutes and add refresh rotation Access tokens now e"
+            },
+            {
+              "ref": "handoff.md",
+              "source": "handoff",
+              "score": 0.1891,
+              "snippet": "# Handoff ## Objective Ship orbit-crm v1.0 on the simplified single-process stac"
+            },
+            {
+              "ref": "session:2026-08-14T15:00:00.000Z",
+              "source": "sessions",
+              "score": 0.2171,
+              "snippet": "Document the authentication flow and rate limits Auth docs cover 15 minute acces"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 0.5,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": true,
+          "leakedRefs": [
+            "session:2026-07-10T11:00:00.000Z"
+          ],
+          "lexicalBackend": "fts5",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 10.73
+        },
+        {
+          "id": "q03",
+          "query": "email job queue",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-queue-pg",
+            "session:2026-08-18T11:30:00.000Z"
+          ],
+          "supersededTraps": [
+            "decision:dec-queue-rabbitmq"
+          ],
+          "staleTraps": [
+            "session:2026-07-15T15:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "session:2026-08-18T11:30:00.000Z",
+              "source": "sessions",
+              "score": 0.1283,
+              "snippet": "Replace RabbitMQ with a Postgres job queue Email jobs moved from RabbitMQ to a P"
+            },
+            {
+              "ref": "decision:dec-queue-pg",
+              "source": "decisions",
+              "score": 0.1289,
+              "snippet": "Move the email job queue to a Postgres table with SKIP LOCKED RabbitMQ was under"
+            },
+            {
+              "ref": "session:2026-07-13T09:30:00.000Z",
+              "source": "sessions",
+              "score": 0.1449,
+              "snippet": "Coordinate sprint 2: campaigns and reminders Sprint 2 planned around campaign em"
+            },
+            {
+              "ref": "session:2026-08-19T09:20:00.000Z",
+              "source": "sessions",
+              "score": 0.1668,
+              "snippet": "Verify the queue migration and close sprint 3 Sprint 3 closed; RabbitMQ fully re"
+            },
+            {
+              "ref": "session:2026-07-15T15:00:00.000Z",
+              "source": "sessions",
+              "score": 0.1709,
+              "snippet": "RabbitMQ consumer for campaign emails Campaign emails are published to RabbitMQ "
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "fts5",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 10.92
+        },
+        {
+          "id": "q04",
+          "query": "why was Redis removed",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-cache-sqlite",
+            "session:2026-08-04T15:00:00.000Z"
+          ],
+          "supersededTraps": [
+            "decision:dec-cache-redis"
+          ],
+          "staleTraps": [
+            "session:2026-07-08T16:30:00.000Z",
+            "session:2026-07-09T10:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "decision:dec-cache-sqlite",
+              "source": "decisions",
+              "score": 0.129,
+              "snippet": "Replace the Redis session cache with embedded SQLite Redis was the only external"
+            },
+            {
+              "ref": "session:2026-07-09T10:00:00.000Z",
+              "source": "sessions",
+              "score": 0.1579,
+              "snippet": "Review the Redis session middleware Review of the Redis session store: reconnect"
+            },
+            {
+              "ref": "session:2026-08-04T15:00:00.000Z",
+              "source": "sessions",
+              "score": 0.1799,
+              "snippet": "Migrate the session cache from Redis to embedded SQLite Login sessions moved fro"
+            },
+            {
+              "ref": "session:2026-07-08T16:30:00.000Z",
+              "source": "sessions",
+              "score": 0.2619,
+              "snippet": "Wire Redis as the login session cache Login sessions now live in Redis with a 12"
+            },
+            {
+              "ref": "session:2026-08-18T11:30:00.000Z",
+              "source": "sessions",
+              "score": 0.2847,
+              "snippet": "Replace RabbitMQ with a Postgres job queue Email jobs moved from RabbitMQ to a P"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": true,
+          "leakedRefs": [
+            "session:2026-07-09T10:00:00.000Z"
+          ],
+          "lexicalBackend": "fts5",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 11.44
+        },
+        {
+          "id": "q05",
+          "query": "refresh token rotation",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-auth-jwt-15m",
+            "session:2026-08-11T17:00:00.000Z",
+            "session:2026-08-12T10:30:00.000Z"
+          ],
+          "supersededTraps": [
+            "decision:dec-auth-jwt-24h"
+          ],
+          "staleTraps": [
+            "session:2026-07-10T11:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "session:2026-08-12T10:30:00.000Z",
+              "source": "sessions",
+              "score": 0.1083,
+              "snippet": "Review refresh token rotation for replay attacks Refresh rotation reviewed; reus"
+            },
+            {
+              "ref": "decision:dec-auth-jwt-15m",
+              "source": "decisions",
+              "score": 0.128,
+              "snippet": "Shorten JWT access tokens to 15 minutes with refresh rotation Security review fl"
+            },
+            {
+              "ref": "session:2026-08-11T17:00:00.000Z",
+              "source": "sessions",
+              "score": 0.1379,
+              "snippet": "Shorten access tokens to 15 minutes and add refresh rotation Access tokens now e"
+            },
+            {
+              "ref": "session:2026-08-14T15:00:00.000Z",
+              "source": "sessions",
+              "score": 0.1405,
+              "snippet": "Document the authentication flow and rate limits Auth docs cover 15 minute acces"
+            },
+            {
+              "ref": "handoff.md",
+              "source": "handoff",
+              "score": 0.2092,
+              "snippet": "# Handoff ## Objective Ship orbit-crm v1.0 on the simplified single-process stac"
+            }
+          ],
+          "precisionAt3": 1,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.4,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "fts5",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 11.51
+        },
+        {
+          "id": "q06",
+          "query": "RabbitMQ consumer crashes on broker restart",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-queue-pg"
+          ],
+          "supersededTraps": [
+            "decision:dec-queue-rabbitmq"
+          ],
+          "staleTraps": [
+            "session:2026-07-15T15:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "decision:dec-queue-pg",
+              "source": "decisions",
+              "score": 0.1149,
+              "snippet": "Move the email job queue to a Postgres table with SKIP LOCKED RabbitMQ was under"
+            },
+            {
+              "ref": "session:2026-08-18T11:30:00.000Z",
+              "source": "sessions",
+              "score": 0.1182,
+              "snippet": "Replace RabbitMQ with a Postgres job queue Email jobs moved from RabbitMQ to a P"
+            },
+            {
+              "ref": "session:2026-07-15T15:00:00.000Z",
+              "source": "sessions",
+              "score": 0.1371,
+              "snippet": "RabbitMQ consumer for campaign emails Campaign emails are published to RabbitMQ "
+            },
+            {
+              "ref": "project-context.md",
+              "source": "project-context",
+              "score": 0.2615,
+              "snippet": "# Project Context ## Current Objective Ship orbit-crm v1.0 on the simplified sin"
+            },
+            {
+              "ref": "session:2026-08-19T09:20:00.000Z",
+              "source": "sessions",
+              "score": 0.2859,
+              "snippet": "Verify the queue migration and close sprint 3 Sprint 3 closed; RabbitMQ fully re"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.8,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": true,
+          "leakedRefs": [
+            "session:2026-07-15T15:00:00.000Z"
+          ],
+          "lexicalBackend": "fts5",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 13.84
+        },
+        {
+          "id": "q07",
+          "query": "webhook retry backoff",
+          "category": "decision",
+          "expected": [
+            "decision:dec-webhook-retry",
+            "session:2026-08-06T10:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "decision:dec-webhook-retry",
+              "source": "decisions",
+              "score": 0.1,
+              "snippet": "Retry webhook deliveries with exponential backoff Customer endpoints go down for"
+            },
+            {
+              "ref": "session:2026-08-06T10:00:00.000Z",
+              "source": "sessions",
+              "score": 0.1,
+              "snippet": "Webhook delivery with exponential backoff retries Webhooks retry with exponentia"
+            },
+            {
+              "ref": "handoff.md",
+              "source": "handoff",
+              "score": 0.1517,
+              "snippet": "# Handoff ## Objective Ship orbit-crm v1.0 on the simplified single-process stac"
+            },
+            {
+              "ref": "session:2026-08-01T09:45:00.000Z",
+              "source": "sessions",
+              "score": 0.3016,
+              "snippet": "Sprint 3 kickoff: webhooks, exports and stability Sprint 3 planned around webhoo"
+            },
+            {
+              "ref": "session:2026-08-13T13:00:00.000Z",
+              "source": "sessions",
+              "score": 0.3328,
+              "snippet": "Token bucket rate limiter per API key All /v1 routes are rate limited per API ke"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "fts5",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 10.96
+        },
+        {
+          "id": "q08",
+          "query": "invoice pdf rendering",
+          "category": "decision",
+          "expected": [
+            "decision:dec-pdf-chromium",
+            "session:2026-08-20T17:30:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-20T17:30:00.000Z",
+              "source": "sessions",
+              "score": 0.1,
+              "snippet": "Server side invoice PDF rendering with headless Chromium Invoice PDFs render ser"
+            },
+            {
+              "ref": "decision:dec-pdf-chromium",
+              "source": "decisions",
+              "score": 0.1209,
+              "snippet": "Render invoice PDFs server side with headless Chromium The client side PDF libra"
+            },
+            {
+              "ref": "handoff.md",
+              "source": "handoff",
+              "score": 0.1981,
+              "snippet": "# Handoff ## Objective Ship orbit-crm v1.0 on the simplified single-process stac"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "fts5",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 9.33
+        },
+        {
+          "id": "q09",
+          "query": "rate limit per api key",
+          "category": "decision",
+          "expected": [
+            "decision:dec-rate-limit",
+            "session:2026-08-13T13:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-13T13:00:00.000Z",
+              "source": "sessions",
+              "score": 0.1,
+              "snippet": "Token bucket rate limiter per API key All /v1 routes are rate limited per API ke"
+            },
+            {
+              "ref": "decision:dec-rate-limit",
+              "source": "decisions",
+              "score": 0.1,
+              "snippet": "Token bucket rate limiting per API key One partner script hammered the contacts "
+            },
+            {
+              "ref": "handoff.md",
+              "source": "handoff",
+              "score": 0.1172,
+              "snippet": "# Handoff ## Objective Ship orbit-crm v1.0 on the simplified single-process stac"
+            },
+            {
+              "ref": "session:2026-08-14T15:00:00.000Z",
+              "source": "sessions",
+              "score": 0.1369,
+              "snippet": "Document the authentication flow and rate limits Auth docs cover 15 minute acces"
+            },
+            {
+              "ref": "decision:dec-api-versioning",
+              "source": "decisions",
+              "score": 0.2616,
+              "snippet": "Version the public API by URL prefix Partners integrate against the REST API and"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "fts5",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 9.4
+        },
+        {
+          "id": "q10",
+          "query": "reminders fired at the wrong hour timezone",
+          "category": "session",
+          "expected": [
+            "session:2026-07-27T10:30:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-07-27T10:30:00.000Z",
+              "source": "sessions",
+              "score": 0.1,
+              "snippet": "Fix the timezone bug in the reminder scheduler Fixed reminders firing at the wro"
+            },
+            {
+              "ref": "session:2026-07-16T10:00:00.000Z",
+              "source": "sessions",
+              "score": 0.2097,
+              "snippet": "Reminder scheduler with a cron scan Reminders fire from a per minute cron scan; "
+            },
+            {
+              "ref": "session:2026-07-13T09:30:00.000Z",
+              "source": "sessions",
+              "score": 0.2467,
+              "snippet": "Coordinate sprint 2: campaigns and reminders Sprint 2 planned around campaign em"
+            },
+            {
+              "ref": "decision:dec-webhook-retry",
+              "source": "decisions",
+              "score": 0.2531,
+              "snippet": "Retry webhook deliveries with exponential backoff Customer endpoints go down for"
+            },
+            {
+              "ref": "session:2026-07-08T16:30:00.000Z",
+              "source": "sessions",
+              "score": 0.3017,
+              "snippet": "Wire Redis as the login session cache Login sessions now live in Redis with a 12"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.8,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "fts5",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 9.93
+        },
+        {
+          "id": "q11",
+          "query": "csv import contacts",
+          "category": "session",
+          "expected": [
+            "session:2026-07-30T11:00:00.000Z",
+            "session:2026-08-03T14:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-07-30T11:00:00.000Z",
+              "source": "sessions",
+              "score": 0.1,
+              "snippet": "CSV import for contacts Contacts can be imported from CSV in batches with a reje"
+            },
+            {
+              "ref": "session:2026-08-24T10:00:00.000Z",
+              "source": "sessions",
+              "score": 0.1033,
+              "snippet": "Fix the flaky contacts import integration test Flaky CSV import test fixed by so"
+            },
+            {
+              "ref": "session:2026-07-07T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.316,
+              "snippet": "Contacts table migration and CRUD routes Contacts CRUD is live on top of a plain"
+            },
+            {
+              "ref": "handoff.md",
+              "source": "handoff",
+              "score": 0.3201,
+              "snippet": "# Handoff ## Objective Ship orbit-crm v1.0 on the simplified single-process stac"
+            },
+            {
+              "ref": "session:2026-08-03T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.3219,
+              "snippet": "Deduplicate imported contacts by email Duplicate contacts merged by email with a"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "fts5",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 11.52
+        },
+        {
+          "id": "q12",
+          "query": "translations plural rules ICU",
+          "category": "decision",
+          "expected": [
+            "decision:dec-i18n-icu",
+            "session:2026-07-28T15:30:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "decision:dec-i18n-icu",
+              "source": "decisions",
+              "score": 0.1,
+              "snippet": "Use ICU message format for translations Plural rules differ between Portuguese, "
+            },
+            {
+              "ref": "session:2026-07-28T15:30:00.000Z",
+              "source": "sessions",
+              "score": 0.1,
+              "snippet": "Extract translations to ICU message format Translations use ICU message format; "
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "fts5",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 8.59
+        },
+        {
+          "id": "q13",
+          "query": "structured logging request id",
+          "category": "decision",
+          "expected": [
+            "decision:dec-logging-json",
+            "session:2026-07-22T09:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-07-22T09:00:00.000Z",
+              "source": "sessions",
+              "score": 0.1,
+              "snippet": "Structured JSON logging middleware Every log line is JSON with level, message, r"
+            },
+            {
+              "ref": "decision:dec-logging-json",
+              "source": "decisions",
+              "score": 0.1,
+              "snippet": "Structured JSON logs with a request id Debugging a support ticket meant grepping"
+            },
+            {
+              "ref": "session:2026-07-24T16:00:00.000Z",
+              "source": "sessions",
+              "score": 0.2713,
+              "snippet": "Write API docs for /v1 contacts and campaigns API reference for the contacts and"
+            },
+            {
+              "ref": "session:2026-08-26T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.3071,
+              "snippet": "Cursor pagination for the contacts list The contacts list uses cursor pagination"
+            },
+            {
+              "ref": "decision:dec-webhook-retry",
+              "source": "decisions",
+              "score": 0.3178,
+              "snippet": "Retry webhook deliveries with exponential backoff Customer endpoints go down for"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "fts5",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 11.92
+        },
+        {
+          "id": "q14",
+          "query": "flaky integration test",
+          "category": "session",
+          "expected": [
+            "session:2026-08-24T10:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-24T10:00:00.000Z",
+              "source": "sessions",
+              "score": 0.1,
+              "snippet": "Fix the flaky contacts import integration test Flaky CSV import test fixed by so"
+            },
+            {
+              "ref": "session:2026-07-08T16:30:00.000Z",
+              "source": "sessions",
+              "score": 0.2996,
+              "snippet": "Wire Redis as the login session cache Login sessions now live in Redis with a 12"
+            },
+            {
+              "ref": "handoff.md",
+              "source": "handoff",
+              "score": 0.3047,
+              "snippet": "# Handoff ## Objective Ship orbit-crm v1.0 on the simplified single-process stac"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.8,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "fts5",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 10.83
+        },
+        {
+          "id": "q15",
+          "query": "dark mode dashboard theme",
+          "category": "session",
+          "expected": [
+            "session:2026-08-10T09:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-10T09:00:00.000Z",
+              "source": "sessions",
+              "score": 0.1,
+              "snippet": "Dark mode for the dashboard The dashboard supports dark mode through CSS tokens "
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.8,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "fts5",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 16.28
+        },
+        {
+          "id": "q16",
+          "query": "API versioning v1 prefix",
+          "category": "decision",
+          "expected": [
+            "decision:dec-api-versioning",
+            "session:2026-07-20T13:30:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-07-20T13:30:00.000Z",
+              "source": "sessions",
+              "score": 0.1001,
+              "snippet": "Freeze /v1 routes and add the version prefix The public API is served under /v1;"
+            },
+            {
+              "ref": "decision:dec-api-versioning",
+              "source": "decisions",
+              "score": 0.1037,
+              "snippet": "Version the public API by URL prefix Partners integrate against the REST API and"
+            },
+            {
+              "ref": "session:2026-07-24T16:00:00.000Z",
+              "source": "sessions",
+              "score": 0.2587,
+              "snippet": "Write API docs for /v1 contacts and campaigns API reference for the contacts and"
+            },
+            {
+              "ref": "session:2026-08-13T13:00:00.000Z",
+              "source": "sessions",
+              "score": 0.2941,
+              "snippet": "Token bucket rate limiter per API key All /v1 routes are rate limited per API ke"
+            },
+            {
+              "ref": "project-context.md",
+              "source": "project-context",
+              "score": 0.3028,
+              "snippet": "# Project Context ## Current Objective Ship orbit-crm v1.0 on the simplified sin"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "fts5",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 12.97
+        },
+        {
+          "id": "q17",
+          "query": "cursor pagination contacts list",
+          "category": "session",
+          "expected": [
+            "session:2026-08-26T14:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-26T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.1,
+              "snippet": "Cursor pagination for the contacts list The contacts list uses cursor pagination"
+            },
+            {
+              "ref": "session:2026-07-17T14:20:00.000Z",
+              "source": "sessions",
+              "score": 0.1518,
+              "snippet": "Contacts list page with table and filters The contacts page renders the list wit"
+            },
+            {
+              "ref": "session:2026-07-07T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.173,
+              "snippet": "Contacts table migration and CRUD routes Contacts CRUD is live on top of a plain"
+            },
+            {
+              "ref": "session:2026-08-03T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.3219,
+              "snippet": "Deduplicate imported contacts by email Duplicate contacts merged by email with a"
+            },
+            {
+              "ref": "session:2026-07-30T11:00:00.000Z",
+              "source": "sessions",
+              "score": 0.328,
+              "snippet": "CSV import for contacts Contacts can be imported from CSV in batches with a reje"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.8,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "fts5",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 14.6
+        },
+        {
+          "id": "q18",
+          "query": "GDPR data export",
+          "category": "session",
+          "expected": [
+            "session:2026-08-07T16:30:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-07T16:30:00.000Z",
+              "source": "sessions",
+              "score": 0.1,
+              "snippet": "GDPR data export endpoint Users can export all of their data as a zip archive. P"
+            },
+            {
+              "ref": "session:2026-08-01T09:45:00.000Z",
+              "source": "sessions",
+              "score": 0.1103,
+              "snippet": "Sprint 3 kickoff: webhooks, exports and stability Sprint 3 planned around webhoo"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.8,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "fts5",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 9.52
+        }
+      ]
+    },
+    {
+      "variant": "semantic",
+      "mode": "semantic",
+      "label": "semantic (local embeddings)",
+      "semanticEnabled": true,
+      "precisionAt3": 0.315,
+      "recallAt5": 0.676,
+      "mrr": 0.567,
+      "noiseAt5": 0.767,
+      "maxPrecisionAt3": 0.574,
+      "minNoiseAt5": 0.656,
+      "supersededLeakRate": 0,
+      "supersededLeakQueries": 0,
+      "supersededTrapQueries": 6,
+      "staleLeakRate": 0.5,
+      "staleLeakQueries": 3,
+      "staleTrapQueries": 6,
+      "fullRecallQueries": 10,
+      "queriesWithWarnings": 0,
+      "unstableQueries": 0,
+      "latencyMs": {
+        "samples": 126,
+        "p50": 14.21,
+        "p95": 20.7,
+        "min": 10.81,
+        "max": 29.32,
+        "mean": 15.02
+      },
+      "queries": [
+        {
+          "id": "q01",
+          "query": "session cache",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-cache-sqlite",
+            "session:2026-08-04T15:00:00.000Z"
+          ],
+          "supersededTraps": [
+            "decision:dec-cache-redis"
+          ],
+          "staleTraps": [
+            "session:2026-07-08T16:30:00.000Z",
+            "session:2026-07-09T10:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "session:2026-08-14T15:00:00.000Z",
+              "source": "sessions",
+              "score": 0.96,
+              "snippet": "Document the authentication flow and rate limits Auth docs cover 15 minute acces"
+            },
+            {
+              "ref": "session:2026-07-10T11:00:00.000Z",
+              "source": "sessions",
+              "score": 0.9528,
+              "snippet": "Issue JWT access tokens with a 24 hour lifetime Login returns a JWT access token"
+            },
+            {
+              "ref": "session:2026-08-11T17:00:00.000Z",
+              "source": "sessions",
+              "score": 0.9268,
+              "snippet": "Shorten access tokens to 15 minutes and add refresh rotation Access tokens now e"
+            },
+            {
+              "ref": "session:2026-07-08T16:30:00.000Z",
+              "source": "sessions",
+              "score": 0.9192,
+              "snippet": "Wire Redis as the login session cache Login sessions now live in Redis with a 12"
+            },
+            {
+              "ref": "decision:dec-auth-jwt-15m",
+              "source": "decisions",
+              "score": 0.9055,
+              "snippet": "Shorten JWT access tokens to 15 minutes with refresh rotation Security review fl"
+            }
+          ],
+          "precisionAt3": 0,
+          "recallAt5": 0,
+          "reciprocalRank": 0,
+          "noiseAt5": 1,
+          "missing": [
+            "decision:dec-cache-sqlite",
+            "session:2026-08-04T15:00:00.000Z"
+          ],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 14.67
+        },
+        {
+          "id": "q02",
+          "query": "JWT access token lifetime",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-auth-jwt-15m",
+            "session:2026-08-11T17:00:00.000Z"
+          ],
+          "supersededTraps": [
+            "decision:dec-auth-jwt-24h"
+          ],
+          "staleTraps": [
+            "session:2026-07-10T11:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "session:2026-08-14T15:00:00.000Z",
+              "source": "sessions",
+              "score": 0.9649,
+              "snippet": "Document the authentication flow and rate limits Auth docs cover 15 minute acces"
+            },
+            {
+              "ref": "session:2026-07-10T11:00:00.000Z",
+              "source": "sessions",
+              "score": 0.9584,
+              "snippet": "Issue JWT access tokens with a 24 hour lifetime Login returns a JWT access token"
+            },
+            {
+              "ref": "session:2026-08-11T17:00:00.000Z",
+              "source": "sessions",
+              "score": 0.9297,
+              "snippet": "Shorten access tokens to 15 minutes and add refresh rotation Access tokens now e"
+            },
+            {
+              "ref": "session:2026-07-08T16:30:00.000Z",
+              "source": "sessions",
+              "score": 0.9194,
+              "snippet": "Wire Redis as the login session cache Login sessions now live in Redis with a 12"
+            },
+            {
+              "ref": "decision:dec-auth-jwt-15m",
+              "source": "decisions",
+              "score": 0.9115,
+              "snippet": "Shorten JWT access tokens to 15 minutes with refresh rotation Security review fl"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 0.3333333333333333,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": true,
+          "leakedRefs": [
+            "session:2026-07-10T11:00:00.000Z"
+          ],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 17.24
+        },
+        {
+          "id": "q03",
+          "query": "email job queue",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-queue-pg",
+            "session:2026-08-18T11:30:00.000Z"
+          ],
+          "supersededTraps": [
+            "decision:dec-queue-rabbitmq"
+          ],
+          "staleTraps": [
+            "session:2026-07-15T15:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "session:2026-08-03T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0952,
+              "snippet": "Deduplicate imported contacts by email Duplicate contacts merged by email with a"
+            },
+            {
+              "ref": "session:2026-07-15T15:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0682,
+              "snippet": "RabbitMQ consumer for campaign emails Campaign emails are published to RabbitMQ "
+            },
+            {
+              "ref": "session:2026-07-16T10:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0627,
+              "snippet": "Reminder scheduler with a cron scan Reminders fire from a per minute cron scan; "
+            },
+            {
+              "ref": "session:2026-07-30T11:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0627,
+              "snippet": "CSV import for contacts Contacts can be imported from CSV in batches with a reje"
+            },
+            {
+              "ref": "session:2026-08-18T11:30:00.000Z",
+              "source": "sessions",
+              "score": 0.0588,
+              "snippet": "Replace RabbitMQ with a Postgres job queue Email jobs moved from RabbitMQ to a P"
+            }
+          ],
+          "precisionAt3": 0,
+          "recallAt5": 0.5,
+          "reciprocalRank": 0.2,
+          "noiseAt5": 0.8,
+          "missing": [
+            "decision:dec-queue-pg"
+          ],
+          "supersededLeak": false,
+          "staleLeak": true,
+          "leakedRefs": [
+            "session:2026-07-15T15:00:00.000Z"
+          ],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 14.99
+        },
+        {
+          "id": "q04",
+          "query": "why was Redis removed",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-cache-sqlite",
+            "session:2026-08-04T15:00:00.000Z"
+          ],
+          "supersededTraps": [
+            "decision:dec-cache-redis"
+          ],
+          "staleTraps": [
+            "session:2026-07-08T16:30:00.000Z",
+            "session:2026-07-09T10:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "project-context.md",
+              "source": "project-context",
+              "score": 0.0872,
+              "snippet": "# Project Context ## Current Objective Ship orbit-crm v1.0 on the simplified sin"
+            },
+            {
+              "ref": "session:2026-08-06T10:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0634,
+              "snippet": "Webhook delivery with exponential backoff retries Webhooks retry with exponentia"
+            },
+            {
+              "ref": "decision:dec-i18n-icu",
+              "source": "decisions",
+              "score": 0.0613,
+              "snippet": "Use ICU message format for translations Plural rules differ between Portuguese, "
+            },
+            {
+              "ref": "decision:dec-webhook-retry",
+              "source": "decisions",
+              "score": 0.0512,
+              "snippet": "Retry webhook deliveries with exponential backoff Customer endpoints go down for"
+            },
+            {
+              "ref": "session:2026-07-16T10:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0494,
+              "snippet": "Reminder scheduler with a cron scan Reminders fire from a per minute cron scan; "
+            }
+          ],
+          "precisionAt3": 0,
+          "recallAt5": 0,
+          "reciprocalRank": 0,
+          "noiseAt5": 1,
+          "missing": [
+            "decision:dec-cache-sqlite",
+            "session:2026-08-04T15:00:00.000Z"
+          ],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 11.91
+        },
+        {
+          "id": "q05",
+          "query": "refresh token rotation",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-auth-jwt-15m",
+            "session:2026-08-11T17:00:00.000Z",
+            "session:2026-08-12T10:30:00.000Z"
+          ],
+          "supersededTraps": [
+            "decision:dec-auth-jwt-24h"
+          ],
+          "staleTraps": [
+            "session:2026-07-10T11:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "session:2026-08-14T15:00:00.000Z",
+              "source": "sessions",
+              "score": 0.9637,
+              "snippet": "Document the authentication flow and rate limits Auth docs cover 15 minute acces"
+            },
+            {
+              "ref": "session:2026-07-10T11:00:00.000Z",
+              "source": "sessions",
+              "score": 0.9507,
+              "snippet": "Issue JWT access tokens with a 24 hour lifetime Login returns a JWT access token"
+            },
+            {
+              "ref": "session:2026-08-11T17:00:00.000Z",
+              "source": "sessions",
+              "score": 0.9274,
+              "snippet": "Shorten access tokens to 15 minutes and add refresh rotation Access tokens now e"
+            },
+            {
+              "ref": "session:2026-07-08T16:30:00.000Z",
+              "source": "sessions",
+              "score": 0.9138,
+              "snippet": "Wire Redis as the login session cache Login sessions now live in Redis with a 12"
+            },
+            {
+              "ref": "decision:dec-auth-jwt-15m",
+              "source": "decisions",
+              "score": 0.9095,
+              "snippet": "Shorten JWT access tokens to 15 minutes with refresh rotation Security review fl"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 0.6666666666666666,
+          "reciprocalRank": 0.3333333333333333,
+          "noiseAt5": 0.6,
+          "missing": [
+            "session:2026-08-12T10:30:00.000Z"
+          ],
+          "supersededLeak": false,
+          "staleLeak": true,
+          "leakedRefs": [
+            "session:2026-07-10T11:00:00.000Z"
+          ],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 13.09
+        },
+        {
+          "id": "q06",
+          "query": "RabbitMQ consumer crashes on broker restart",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-queue-pg"
+          ],
+          "supersededTraps": [
+            "decision:dec-queue-rabbitmq"
+          ],
+          "staleTraps": [
+            "session:2026-07-15T15:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "decision:dec-webhook-retry",
+              "source": "decisions",
+              "score": 0.7937,
+              "snippet": "Retry webhook deliveries with exponential backoff Customer endpoints go down for"
+            },
+            {
+              "ref": "session:2026-08-12T10:30:00.000Z",
+              "source": "sessions",
+              "score": 0.7763,
+              "snippet": "Review refresh token rotation for replay attacks Refresh rotation reviewed; reus"
+            },
+            {
+              "ref": "session:2026-08-26T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.7433,
+              "snippet": "Cursor pagination for the contacts list The contacts list uses cursor pagination"
+            },
+            {
+              "ref": "decision:dec-i18n-icu",
+              "source": "decisions",
+              "score": 0.7385,
+              "snippet": "Use ICU message format for translations Plural rules differ between Portuguese, "
+            },
+            {
+              "ref": "session:2026-07-09T10:00:00.000Z",
+              "source": "sessions",
+              "score": 0.7293,
+              "snippet": "Review the Redis session middleware Review of the Redis session store: reconnect"
+            }
+          ],
+          "precisionAt3": 0,
+          "recallAt5": 0,
+          "reciprocalRank": 0,
+          "noiseAt5": 1,
+          "missing": [
+            "decision:dec-queue-pg"
+          ],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 14.21
+        },
+        {
+          "id": "q07",
+          "query": "webhook retry backoff",
+          "category": "decision",
+          "expected": [
+            "decision:dec-webhook-retry",
+            "session:2026-08-06T10:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-06T10:00:00.000Z",
+              "source": "sessions",
+              "score": 0.156,
+              "snippet": "Webhook delivery with exponential backoff retries Webhooks retry with exponentia"
+            },
+            {
+              "ref": "decision:dec-webhook-retry",
+              "source": "decisions",
+              "score": 0.0871,
+              "snippet": "Retry webhook deliveries with exponential backoff Customer endpoints go down for"
+            },
+            {
+              "ref": "decision:dec-i18n-icu",
+              "source": "decisions",
+              "score": 0.0827,
+              "snippet": "Use ICU message format for translations Plural rules differ between Portuguese, "
+            },
+            {
+              "ref": "project-context.md",
+              "source": "project-context",
+              "score": 0.0556,
+              "snippet": "# Project Context ## Current Objective Ship orbit-crm v1.0 on the simplified sin"
+            },
+            {
+              "ref": "handoff.md",
+              "source": "handoff",
+              "score": 0.0511,
+              "snippet": "# Handoff ## Objective Ship orbit-crm v1.0 on the simplified single-process stac"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 14.77
+        },
+        {
+          "id": "q08",
+          "query": "invoice pdf rendering",
+          "category": "decision",
+          "expected": [
+            "decision:dec-pdf-chromium",
+            "session:2026-08-20T17:30:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-20T17:30:00.000Z",
+              "source": "sessions",
+              "score": 0.1189,
+              "snippet": "Server side invoice PDF rendering with headless Chromium Invoice PDFs render ser"
+            },
+            {
+              "ref": "decision:dec-i18n-icu",
+              "source": "decisions",
+              "score": 0.0951,
+              "snippet": "Use ICU message format for translations Plural rules differ between Portuguese, "
+            },
+            {
+              "ref": "session:2026-08-06T10:00:00.000Z",
+              "source": "sessions",
+              "score": 0.083,
+              "snippet": "Webhook delivery with exponential backoff retries Webhooks retry with exponentia"
+            },
+            {
+              "ref": "session:2026-08-03T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0647,
+              "snippet": "Deduplicate imported contacts by email Duplicate contacts merged by email with a"
+            },
+            {
+              "ref": "project-context.md",
+              "source": "project-context",
+              "score": 0.0627,
+              "snippet": "# Project Context ## Current Objective Ship orbit-crm v1.0 on the simplified sin"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 0.5,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.8,
+          "missing": [
+            "decision:dec-pdf-chromium"
+          ],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 16.41
+        },
+        {
+          "id": "q09",
+          "query": "rate limit per api key",
+          "category": "decision",
+          "expected": [
+            "decision:dec-rate-limit",
+            "session:2026-08-13T13:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-13T13:00:00.000Z",
+              "source": "sessions",
+              "score": 0.9369,
+              "snippet": "Token bucket rate limiter per API key All /v1 routes are rate limited per API ke"
+            },
+            {
+              "ref": "decision:dec-rate-limit",
+              "source": "decisions",
+              "score": 0.8328,
+              "snippet": "Token bucket rate limiting per API key One partner script hammered the contacts "
+            },
+            {
+              "ref": "session:2026-07-22T09:00:00.000Z",
+              "source": "sessions",
+              "score": 0.7887,
+              "snippet": "Structured JSON logging middleware Every log line is JSON with level, message, r"
+            },
+            {
+              "ref": "decision:dec-api-versioning",
+              "source": "decisions",
+              "score": 0.6841,
+              "snippet": "Version the public API by URL prefix Partners integrate against the REST API and"
+            },
+            {
+              "ref": "decision:dec-queue-pg",
+              "source": "decisions",
+              "score": 0.6638,
+              "snippet": "Move the email job queue to a Postgres table with SKIP LOCKED RabbitMQ was under"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 16.03
+        },
+        {
+          "id": "q10",
+          "query": "reminders fired at the wrong hour timezone",
+          "category": "session",
+          "expected": [
+            "session:2026-07-27T10:30:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-07-17T14:20:00.000Z",
+              "source": "sessions",
+              "score": 0.924,
+              "snippet": "Contacts list page with table and filters The contacts page renders the list wit"
+            },
+            {
+              "ref": "session:2026-08-18T11:30:00.000Z",
+              "source": "sessions",
+              "score": 0.7996,
+              "snippet": "Replace RabbitMQ with a Postgres job queue Email jobs moved from RabbitMQ to a P"
+            },
+            {
+              "ref": "session:2026-08-24T10:00:00.000Z",
+              "source": "sessions",
+              "score": 0.7976,
+              "snippet": "Fix the flaky contacts import integration test Flaky CSV import test fixed by so"
+            },
+            {
+              "ref": "session:2026-07-30T11:00:00.000Z",
+              "source": "sessions",
+              "score": 0.7712,
+              "snippet": "CSV import for contacts Contacts can be imported from CSV in batches with a reje"
+            },
+            {
+              "ref": "decision:dec-queue-pg",
+              "source": "decisions",
+              "score": 0.747,
+              "snippet": "Move the email job queue to a Postgres table with SKIP LOCKED RabbitMQ was under"
+            }
+          ],
+          "precisionAt3": 0,
+          "recallAt5": 0,
+          "reciprocalRank": 0,
+          "noiseAt5": 1,
+          "missing": [
+            "session:2026-07-27T10:30:00.000Z"
+          ],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 18.35
+        },
+        {
+          "id": "q11",
+          "query": "csv import contacts",
+          "category": "session",
+          "expected": [
+            "session:2026-07-30T11:00:00.000Z",
+            "session:2026-08-03T14:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-07-30T11:00:00.000Z",
+              "source": "sessions",
+              "score": 0.1641,
+              "snippet": "CSV import for contacts Contacts can be imported from CSV in batches with a reje"
+            },
+            {
+              "ref": "session:2026-08-03T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.1476,
+              "snippet": "Deduplicate imported contacts by email Duplicate contacts merged by email with a"
+            },
+            {
+              "ref": "session:2026-08-26T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0937,
+              "snippet": "Cursor pagination for the contacts list The contacts list uses cursor pagination"
+            },
+            {
+              "ref": "session:2026-07-17T14:20:00.000Z",
+              "source": "sessions",
+              "score": 0.0896,
+              "snippet": "Contacts list page with table and filters The contacts page renders the list wit"
+            },
+            {
+              "ref": "project-context.md",
+              "source": "project-context",
+              "score": 0.0861,
+              "snippet": "# Project Context ## Current Objective Ship orbit-crm v1.0 on the simplified sin"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 13.28
+        },
+        {
+          "id": "q12",
+          "query": "translations plural rules ICU",
+          "category": "decision",
+          "expected": [
+            "decision:dec-i18n-icu",
+            "session:2026-07-28T15:30:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "decision:dec-i18n-icu",
+              "source": "decisions",
+              "score": 0.2042,
+              "snippet": "Use ICU message format for translations Plural rules differ between Portuguese, "
+            },
+            {
+              "ref": "session:2026-07-28T15:30:00.000Z",
+              "source": "sessions",
+              "score": 0.0856,
+              "snippet": "Extract translations to ICU message format Translations use ICU message format; "
+            },
+            {
+              "ref": "project-context.md",
+              "source": "project-context",
+              "score": 0.0841,
+              "snippet": "# Project Context ## Current Objective Ship orbit-crm v1.0 on the simplified sin"
+            },
+            {
+              "ref": "session:2026-07-16T10:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0748,
+              "snippet": "Reminder scheduler with a cron scan Reminders fire from a per minute cron scan; "
+            },
+            {
+              "ref": "session:2026-08-03T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0724,
+              "snippet": "Deduplicate imported contacts by email Duplicate contacts merged by email with a"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 11.94
+        },
+        {
+          "id": "q13",
+          "query": "structured logging request id",
+          "category": "decision",
+          "expected": [
+            "decision:dec-logging-json",
+            "session:2026-07-22T09:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "decision:dec-logging-json",
+              "source": "decisions",
+              "score": 0.8766,
+              "snippet": "Structured JSON logs with a request id Debugging a support ticket meant grepping"
+            },
+            {
+              "ref": "session:2026-07-24T16:00:00.000Z",
+              "source": "sessions",
+              "score": 0.8524,
+              "snippet": "Write API docs for /v1 contacts and campaigns API reference for the contacts and"
+            },
+            {
+              "ref": "session:2026-08-13T13:00:00.000Z",
+              "source": "sessions",
+              "score": 0.804,
+              "snippet": "Token bucket rate limiter per API key All /v1 routes are rate limited per API ke"
+            },
+            {
+              "ref": "decision:dec-rate-limit",
+              "source": "decisions",
+              "score": 0.7861,
+              "snippet": "Token bucket rate limiting per API key One partner script hammered the contacts "
+            },
+            {
+              "ref": "session:2026-07-20T13:30:00.000Z",
+              "source": "sessions",
+              "score": 0.7279,
+              "snippet": "Freeze /v1 routes and add the version prefix The public API is served under /v1;"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 0.5,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.8,
+          "missing": [
+            "session:2026-07-22T09:00:00.000Z"
+          ],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 13.5
+        },
+        {
+          "id": "q14",
+          "query": "flaky integration test",
+          "category": "session",
+          "expected": [
+            "session:2026-08-24T10:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-28T09:30:00.000Z",
+              "source": "sessions",
+              "score": 0.8656,
+              "snippet": "Handoff: prepare the v1.0 release checklist Release checklist drafted from all a"
+            },
+            {
+              "ref": "session:2026-08-24T10:00:00.000Z",
+              "source": "sessions",
+              "score": 0.7995,
+              "snippet": "Fix the flaky contacts import integration test Flaky CSV import test fixed by so"
+            },
+            {
+              "ref": "session:2026-07-15T15:00:00.000Z",
+              "source": "sessions",
+              "score": 0.4614,
+              "snippet": "RabbitMQ consumer for campaign emails Campaign emails are published to RabbitMQ "
+            },
+            {
+              "ref": "decision:dec-webhook-retry",
+              "source": "decisions",
+              "score": 0.4414,
+              "snippet": "Retry webhook deliveries with exponential backoff Customer endpoints go down for"
+            },
+            {
+              "ref": "project-context.md",
+              "source": "project-context",
+              "score": 0.3888,
+              "snippet": "# Project Context ## Current Objective Ship orbit-crm v1.0 on the simplified sin"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 0.5,
+          "noiseAt5": 0.8,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 14.17
+        },
+        {
+          "id": "q15",
+          "query": "dark mode dashboard theme",
+          "category": "session",
+          "expected": [
+            "session:2026-08-10T09:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-10T09:00:00.000Z",
+              "source": "sessions",
+              "score": 0.9807,
+              "snippet": "Dark mode for the dashboard The dashboard supports dark mode through CSS tokens "
+            },
+            {
+              "ref": "decision:dec-cache-sqlite",
+              "source": "decisions",
+              "score": 0.6503,
+              "snippet": "Replace the Redis session cache with embedded SQLite Redis was the only external"
+            },
+            {
+              "ref": "session:2026-08-26T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.6489,
+              "snippet": "Cursor pagination for the contacts list The contacts list uses cursor pagination"
+            },
+            {
+              "ref": "session:2026-07-17T14:20:00.000Z",
+              "source": "sessions",
+              "score": 0.6391,
+              "snippet": "Contacts list page with table and filters The contacts page renders the list wit"
+            },
+            {
+              "ref": "decision:dec-pdf-chromium",
+              "source": "decisions",
+              "score": 0.6377,
+              "snippet": "Render invoice PDFs server side with headless Chromium The client side PDF libra"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.8,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 17.03
+        },
+        {
+          "id": "q16",
+          "query": "API versioning v1 prefix",
+          "category": "decision",
+          "expected": [
+            "decision:dec-api-versioning",
+            "session:2026-07-20T13:30:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-07-24T16:00:00.000Z",
+              "source": "sessions",
+              "score": 0.6947,
+              "snippet": "Write API docs for /v1 contacts and campaigns API reference for the contacts and"
+            },
+            {
+              "ref": "decision:dec-logging-json",
+              "source": "decisions",
+              "score": 0.6363,
+              "snippet": "Structured JSON logs with a request id Debugging a support ticket meant grepping"
+            },
+            {
+              "ref": "session:2026-07-20T13:30:00.000Z",
+              "source": "sessions",
+              "score": 0.6362,
+              "snippet": "Freeze /v1 routes and add the version prefix The public API is served under /v1;"
+            },
+            {
+              "ref": "session:2026-08-01T09:45:00.000Z",
+              "source": "sessions",
+              "score": 0.6027,
+              "snippet": "Sprint 3 kickoff: webhooks, exports and stability Sprint 3 planned around webhoo"
+            },
+            {
+              "ref": "decision:dec-api-versioning",
+              "source": "decisions",
+              "score": 0.5941,
+              "snippet": "Version the public API by URL prefix Partners integrate against the REST API and"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 0.3333333333333333,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 15.49
+        },
+        {
+          "id": "q17",
+          "query": "cursor pagination contacts list",
+          "category": "session",
+          "expected": [
+            "session:2026-08-26T14:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-26T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.1573,
+              "snippet": "Cursor pagination for the contacts list The contacts list uses cursor pagination"
+            },
+            {
+              "ref": "session:2026-08-03T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.1481,
+              "snippet": "Deduplicate imported contacts by email Duplicate contacts merged by email with a"
+            },
+            {
+              "ref": "session:2026-07-30T11:00:00.000Z",
+              "source": "sessions",
+              "score": 0.1069,
+              "snippet": "CSV import for contacts Contacts can be imported from CSV in batches with a reje"
+            },
+            {
+              "ref": "session:2026-07-17T14:20:00.000Z",
+              "source": "sessions",
+              "score": 0.1049,
+              "snippet": "Contacts list page with table and filters The contacts page renders the list wit"
+            },
+            {
+              "ref": "decision:dec-i18n-icu",
+              "source": "decisions",
+              "score": 0.1025,
+              "snippet": "Use ICU message format for translations Plural rules differ between Portuguese, "
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.8,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 12.18
+        },
+        {
+          "id": "q18",
+          "query": "GDPR data export",
+          "category": "session",
+          "expected": [
+            "session:2026-08-07T16:30:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-03T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.7889,
+              "snippet": "Deduplicate imported contacts by email Duplicate contacts merged by email with a"
+            },
+            {
+              "ref": "session:2026-08-07T16:30:00.000Z",
+              "source": "sessions",
+              "score": 0.7796,
+              "snippet": "GDPR data export endpoint Users can export all of their data as a zip archive. P"
+            },
+            {
+              "ref": "session:2026-08-01T09:45:00.000Z",
+              "source": "sessions",
+              "score": 0.7474,
+              "snippet": "Sprint 3 kickoff: webhooks, exports and stability Sprint 3 planned around webhoo"
+            },
+            {
+              "ref": "session:2026-08-18T11:30:00.000Z",
+              "source": "sessions",
+              "score": 0.7471,
+              "snippet": "Replace RabbitMQ with a Postgres job queue Email jobs moved from RabbitMQ to a P"
+            },
+            {
+              "ref": "session:2026-08-19T09:20:00.000Z",
+              "source": "sessions",
+              "score": 0.702,
+              "snippet": "Verify the queue migration and close sprint 3 Sprint 3 closed; RabbitMQ fully re"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 0.5,
+          "noiseAt5": 0.8,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 11.47
+        }
+      ]
+    },
+    {
+      "variant": "hybrid",
+      "mode": "hybrid",
+      "label": "hybrid (RRF of FTS5 + embeddings)",
+      "semanticEnabled": true,
+      "precisionAt3": 0.463,
+      "recallAt5": 1,
+      "mrr": 0.824,
+      "noiseAt5": 0.656,
+      "maxPrecisionAt3": 0.574,
+      "minNoiseAt5": 0.656,
+      "supersededLeakRate": 0,
+      "supersededLeakQueries": 0,
+      "supersededTrapQueries": 6,
+      "staleLeakRate": 0.667,
+      "staleLeakQueries": 4,
+      "staleTrapQueries": 6,
+      "fullRecallQueries": 18,
+      "queriesWithWarnings": 0,
+      "unstableQueries": 0,
+      "latencyMs": {
+        "samples": 126,
+        "p50": 13.18,
+        "p95": 23.07,
+        "min": 10.5,
+        "max": 34.51,
+        "mean": 14.9
+      },
+      "queries": [
+        {
+          "id": "q01",
+          "query": "session cache",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-cache-sqlite",
+            "session:2026-08-04T15:00:00.000Z"
+          ],
+          "supersededTraps": [
+            "decision:dec-cache-redis"
+          ],
+          "staleTraps": [
+            "session:2026-07-08T16:30:00.000Z",
+            "session:2026-07-09T10:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "session:2026-07-08T16:30:00.000Z",
+              "source": "sessions",
+              "score": 0.0318,
+              "snippet": "Wire Redis as the login session cache Login sessions now live in Redis with a 12"
+            },
+            {
+              "ref": "decision:dec-cache-sqlite",
+              "source": "decisions",
+              "score": 0.0164,
+              "snippet": "Replace the Redis session cache with embedded SQLite Redis was the only external"
+            },
+            {
+              "ref": "session:2026-08-14T15:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0164,
+              "snippet": "Document the authentication flow and rate limits Auth docs cover 15 minute acces"
+            },
+            {
+              "ref": "session:2026-07-10T11:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0161,
+              "snippet": "Issue JWT access tokens with a 24 hour lifetime Login returns a JWT access token"
+            },
+            {
+              "ref": "session:2026-08-04T15:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0159,
+              "snippet": "Migrate the session cache from Redis to embedded SQLite Login sessions moved fro"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 0.5,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": true,
+          "leakedRefs": [
+            "session:2026-07-08T16:30:00.000Z"
+          ],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 15.46
+        },
+        {
+          "id": "q02",
+          "query": "JWT access token lifetime",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-auth-jwt-15m",
+            "session:2026-08-11T17:00:00.000Z"
+          ],
+          "supersededTraps": [
+            "decision:dec-auth-jwt-24h"
+          ],
+          "staleTraps": [
+            "session:2026-07-10T11:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "session:2026-07-10T11:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0325,
+              "snippet": "Issue JWT access tokens with a 24 hour lifetime Login returns a JWT access token"
+            },
+            {
+              "ref": "session:2026-08-14T15:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0318,
+              "snippet": "Document the authentication flow and rate limits Auth docs cover 15 minute acces"
+            },
+            {
+              "ref": "session:2026-08-11T17:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0317,
+              "snippet": "Shorten access tokens to 15 minutes and add refresh rotation Access tokens now e"
+            },
+            {
+              "ref": "decision:dec-auth-jwt-15m",
+              "source": "decisions",
+              "score": 0.0315,
+              "snippet": "Shorten JWT access tokens to 15 minutes with refresh rotation Security review fl"
+            },
+            {
+              "ref": "handoff.md",
+              "source": "handoff",
+              "score": 0.0206,
+              "snippet": "# Handoff ## Objective Ship orbit-crm v1.0 on the simplified single-process stac"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 0.3333333333333333,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": true,
+          "leakedRefs": [
+            "session:2026-07-10T11:00:00.000Z"
+          ],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 11.71
+        },
+        {
+          "id": "q03",
+          "query": "email job queue",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-queue-pg",
+            "session:2026-08-18T11:30:00.000Z"
+          ],
+          "supersededTraps": [
+            "decision:dec-queue-rabbitmq"
+          ],
+          "staleTraps": [
+            "session:2026-07-15T15:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "session:2026-08-18T11:30:00.000Z",
+              "source": "sessions",
+              "score": 0.0318,
+              "snippet": "Replace RabbitMQ with a Postgres job queue Email jobs moved from RabbitMQ to a P"
+            },
+            {
+              "ref": "session:2026-07-15T15:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0315,
+              "snippet": "RabbitMQ consumer for campaign emails Campaign emails are published to RabbitMQ "
+            },
+            {
+              "ref": "session:2026-08-03T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0164,
+              "snippet": "Deduplicate imported contacts by email Duplicate contacts merged by email with a"
+            },
+            {
+              "ref": "decision:dec-queue-pg",
+              "source": "decisions",
+              "score": 0.0161,
+              "snippet": "Move the email job queue to a Postgres table with SKIP LOCKED RabbitMQ was under"
+            },
+            {
+              "ref": "session:2026-07-13T09:30:00.000Z",
+              "source": "sessions",
+              "score": 0.0159,
+              "snippet": "Coordinate sprint 2: campaigns and reminders Sprint 2 planned around campaign em"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": true,
+          "leakedRefs": [
+            "session:2026-07-15T15:00:00.000Z"
+          ],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 15.08
+        },
+        {
+          "id": "q04",
+          "query": "why was Redis removed",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-cache-sqlite",
+            "session:2026-08-04T15:00:00.000Z"
+          ],
+          "supersededTraps": [
+            "decision:dec-cache-redis"
+          ],
+          "staleTraps": [
+            "session:2026-07-08T16:30:00.000Z",
+            "session:2026-07-09T10:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "project-context.md",
+              "source": "project-context",
+              "score": 0.0214,
+              "snippet": "# Project Context ## Current Objective Ship orbit-crm v1.0 on the simplified sin"
+            },
+            {
+              "ref": "decision:dec-cache-sqlite",
+              "source": "decisions",
+              "score": 0.0164,
+              "snippet": "Replace the Redis session cache with embedded SQLite Redis was the only external"
+            },
+            {
+              "ref": "session:2026-07-09T10:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0161,
+              "snippet": "Review the Redis session middleware Review of the Redis session store: reconnect"
+            },
+            {
+              "ref": "session:2026-08-06T10:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0161,
+              "snippet": "Webhook delivery with exponential backoff retries Webhooks retry with exponentia"
+            },
+            {
+              "ref": "session:2026-08-04T15:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0159,
+              "snippet": "Migrate the session cache from Redis to embedded SQLite Login sessions moved fro"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 0.5,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": true,
+          "leakedRefs": [
+            "session:2026-07-09T10:00:00.000Z"
+          ],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 11.44
+        },
+        {
+          "id": "q05",
+          "query": "refresh token rotation",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-auth-jwt-15m",
+            "session:2026-08-11T17:00:00.000Z",
+            "session:2026-08-12T10:30:00.000Z"
+          ],
+          "supersededTraps": [
+            "decision:dec-auth-jwt-24h"
+          ],
+          "staleTraps": [
+            "session:2026-07-10T11:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "session:2026-08-14T15:00:00.000Z",
+              "source": "sessions",
+              "score": 0.032,
+              "snippet": "Document the authentication flow and rate limits Auth docs cover 15 minute acces"
+            },
+            {
+              "ref": "session:2026-08-11T17:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0317,
+              "snippet": "Shorten access tokens to 15 minutes and add refresh rotation Access tokens now e"
+            },
+            {
+              "ref": "decision:dec-auth-jwt-15m",
+              "source": "decisions",
+              "score": 0.0315,
+              "snippet": "Shorten JWT access tokens to 15 minutes with refresh rotation Security review fl"
+            },
+            {
+              "ref": "handoff.md",
+              "source": "handoff",
+              "score": 0.0204,
+              "snippet": "# Handoff ## Objective Ship orbit-crm v1.0 on the simplified single-process stac"
+            },
+            {
+              "ref": "session:2026-08-12T10:30:00.000Z",
+              "source": "sessions",
+              "score": 0.0164,
+              "snippet": "Review refresh token rotation for replay attacks Refresh rotation reviewed; reus"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 0.5,
+          "noiseAt5": 0.4,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 11.86
+        },
+        {
+          "id": "q06",
+          "query": "RabbitMQ consumer crashes on broker restart",
+          "category": "superseded",
+          "expected": [
+            "decision:dec-queue-pg"
+          ],
+          "supersededTraps": [
+            "decision:dec-queue-rabbitmq"
+          ],
+          "staleTraps": [
+            "session:2026-07-15T15:00:00.000Z"
+          ],
+          "hits": [
+            {
+              "ref": "project-context.md",
+              "source": "project-context",
+              "score": 0.0206,
+              "snippet": "# Project Context ## Current Objective Ship orbit-crm v1.0 on the simplified sin"
+            },
+            {
+              "ref": "decision:dec-queue-pg",
+              "source": "decisions",
+              "score": 0.0164,
+              "snippet": "Move the email job queue to a Postgres table with SKIP LOCKED RabbitMQ was under"
+            },
+            {
+              "ref": "decision:dec-webhook-retry",
+              "source": "decisions",
+              "score": 0.0164,
+              "snippet": "Retry webhook deliveries with exponential backoff Customer endpoints go down for"
+            },
+            {
+              "ref": "session:2026-08-18T11:30:00.000Z",
+              "source": "sessions",
+              "score": 0.0161,
+              "snippet": "Replace RabbitMQ with a Postgres job queue Email jobs moved from RabbitMQ to a P"
+            },
+            {
+              "ref": "session:2026-08-12T10:30:00.000Z",
+              "source": "sessions",
+              "score": 0.0161,
+              "snippet": "Review refresh token rotation for replay attacks Refresh rotation reviewed; reus"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 0.5,
+          "noiseAt5": 0.8,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 15.52
+        },
+        {
+          "id": "q07",
+          "query": "webhook retry backoff",
+          "category": "decision",
+          "expected": [
+            "decision:dec-webhook-retry",
+            "session:2026-08-06T10:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "handoff.md",
+              "source": "handoff",
+              "score": 0.0363,
+              "snippet": "# Handoff ## Objective Ship orbit-crm v1.0 on the simplified single-process stac"
+            },
+            {
+              "ref": "decision:dec-webhook-retry",
+              "source": "decisions",
+              "score": 0.0325,
+              "snippet": "Retry webhook deliveries with exponential backoff Customer endpoints go down for"
+            },
+            {
+              "ref": "session:2026-08-06T10:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0325,
+              "snippet": "Webhook delivery with exponential backoff retries Webhooks retry with exponentia"
+            },
+            {
+              "ref": "project-context.md",
+              "source": "project-context",
+              "score": 0.0206,
+              "snippet": "# Project Context ## Current Objective Ship orbit-crm v1.0 on the simplified sin"
+            },
+            {
+              "ref": "decision:dec-i18n-icu",
+              "source": "decisions",
+              "score": 0.0159,
+              "snippet": "Use ICU message format for translations Plural rules differ between Portuguese, "
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 0.5,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 15.35
+        },
+        {
+          "id": "q08",
+          "query": "invoice pdf rendering",
+          "category": "decision",
+          "expected": [
+            "decision:dec-pdf-chromium",
+            "session:2026-08-20T17:30:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-20T17:30:00.000Z",
+              "source": "sessions",
+              "score": 0.0328,
+              "snippet": "Server side invoice PDF rendering with headless Chromium Invoice PDFs render ser"
+            },
+            {
+              "ref": "handoff.md",
+              "source": "handoff",
+              "score": 0.0209,
+              "snippet": "# Handoff ## Objective Ship orbit-crm v1.0 on the simplified single-process stac"
+            },
+            {
+              "ref": "project-context.md",
+              "source": "project-context",
+              "score": 0.0204,
+              "snippet": "# Project Context ## Current Objective Ship orbit-crm v1.0 on the simplified sin"
+            },
+            {
+              "ref": "decision:dec-pdf-chromium",
+              "source": "decisions",
+              "score": 0.0161,
+              "snippet": "Render invoice PDFs server side with headless Chromium The client side PDF libra"
+            },
+            {
+              "ref": "decision:dec-i18n-icu",
+              "source": "decisions",
+              "score": 0.0161,
+              "snippet": "Use ICU message format for translations Plural rules differ between Portuguese, "
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 22.38
+        },
+        {
+          "id": "q09",
+          "query": "rate limit per api key",
+          "category": "decision",
+          "expected": [
+            "decision:dec-rate-limit",
+            "session:2026-08-13T13:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-13T13:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0328,
+              "snippet": "Token bucket rate limiter per API key All /v1 routes are rate limited per API ke"
+            },
+            {
+              "ref": "decision:dec-rate-limit",
+              "source": "decisions",
+              "score": 0.0323,
+              "snippet": "Token bucket rate limiting per API key One partner script hammered the contacts "
+            },
+            {
+              "ref": "decision:dec-api-versioning",
+              "source": "decisions",
+              "score": 0.031,
+              "snippet": "Version the public API by URL prefix Partners integrate against the REST API and"
+            },
+            {
+              "ref": "handoff.md",
+              "source": "handoff",
+              "score": 0.0209,
+              "snippet": "# Handoff ## Objective Ship orbit-crm v1.0 on the simplified single-process stac"
+            },
+            {
+              "ref": "session:2026-07-22T09:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0159,
+              "snippet": "Structured JSON logging middleware Every log line is JSON with level, message, r"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 14.01
+        },
+        {
+          "id": "q10",
+          "query": "reminders fired at the wrong hour timezone",
+          "category": "session",
+          "expected": [
+            "session:2026-07-27T10:30:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-07-27T10:30:00.000Z",
+              "source": "sessions",
+              "score": 0.0164,
+              "snippet": "Fix the timezone bug in the reminder scheduler Fixed reminders firing at the wro"
+            },
+            {
+              "ref": "session:2026-07-17T14:20:00.000Z",
+              "source": "sessions",
+              "score": 0.0164,
+              "snippet": "Contacts list page with table and filters The contacts page renders the list wit"
+            },
+            {
+              "ref": "session:2026-07-16T10:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0161,
+              "snippet": "Reminder scheduler with a cron scan Reminders fire from a per minute cron scan; "
+            },
+            {
+              "ref": "session:2026-08-18T11:30:00.000Z",
+              "source": "sessions",
+              "score": 0.0161,
+              "snippet": "Replace RabbitMQ with a Postgres job queue Email jobs moved from RabbitMQ to a P"
+            },
+            {
+              "ref": "session:2026-07-13T09:30:00.000Z",
+              "source": "sessions",
+              "score": 0.0159,
+              "snippet": "Coordinate sprint 2: campaigns and reminders Sprint 2 planned around campaign em"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.8,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 12.73
+        },
+        {
+          "id": "q11",
+          "query": "csv import contacts",
+          "category": "session",
+          "expected": [
+            "session:2026-07-30T11:00:00.000Z",
+            "session:2026-08-03T14:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-07-30T11:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0328,
+              "snippet": "CSV import for contacts Contacts can be imported from CSV in batches with a reje"
+            },
+            {
+              "ref": "session:2026-08-03T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0315,
+              "snippet": "Deduplicate imported contacts by email Duplicate contacts merged by email with a"
+            },
+            {
+              "ref": "handoff.md",
+              "source": "handoff",
+              "score": 0.0206,
+              "snippet": "# Handoff ## Objective Ship orbit-crm v1.0 on the simplified single-process stac"
+            },
+            {
+              "ref": "project-context.md",
+              "source": "project-context",
+              "score": 0.0204,
+              "snippet": "# Project Context ## Current Objective Ship orbit-crm v1.0 on the simplified sin"
+            },
+            {
+              "ref": "session:2026-08-24T10:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0161,
+              "snippet": "Fix the flaky contacts import integration test Flaky CSV import test fixed by so"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 14.32
+        },
+        {
+          "id": "q12",
+          "query": "translations plural rules ICU",
+          "category": "decision",
+          "expected": [
+            "decision:dec-i18n-icu",
+            "session:2026-07-28T15:30:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "decision:dec-i18n-icu",
+              "source": "decisions",
+              "score": 0.0328,
+              "snippet": "Use ICU message format for translations Plural rules differ between Portuguese, "
+            },
+            {
+              "ref": "session:2026-07-28T15:30:00.000Z",
+              "source": "sessions",
+              "score": 0.0323,
+              "snippet": "Extract translations to ICU message format Translations use ICU message format; "
+            },
+            {
+              "ref": "project-context.md",
+              "source": "project-context",
+              "score": 0.0209,
+              "snippet": "# Project Context ## Current Objective Ship orbit-crm v1.0 on the simplified sin"
+            },
+            {
+              "ref": "session:2026-07-16T10:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0156,
+              "snippet": "Reminder scheduler with a cron scan Reminders fire from a per minute cron scan; "
+            },
+            {
+              "ref": "session:2026-08-03T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0154,
+              "snippet": "Deduplicate imported contacts by email Duplicate contacts merged by email with a"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 12.33
+        },
+        {
+          "id": "q13",
+          "query": "structured logging request id",
+          "category": "decision",
+          "expected": [
+            "decision:dec-logging-json",
+            "session:2026-07-22T09:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "decision:dec-logging-json",
+              "source": "decisions",
+              "score": 0.0325,
+              "snippet": "Structured JSON logs with a request id Debugging a support ticket meant grepping"
+            },
+            {
+              "ref": "session:2026-07-24T16:00:00.000Z",
+              "source": "sessions",
+              "score": 0.032,
+              "snippet": "Write API docs for /v1 contacts and campaigns API reference for the contacts and"
+            },
+            {
+              "ref": "session:2026-07-22T09:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0164,
+              "snippet": "Structured JSON logging middleware Every log line is JSON with level, message, r"
+            },
+            {
+              "ref": "session:2026-08-13T13:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0159,
+              "snippet": "Token bucket rate limiter per API key All /v1 routes are rate limited per API ke"
+            },
+            {
+              "ref": "session:2026-08-26T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0156,
+              "snippet": "Cursor pagination for the contacts list The contacts list uses cursor pagination"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 11.77
+        },
+        {
+          "id": "q14",
+          "query": "flaky integration test",
+          "category": "session",
+          "expected": [
+            "session:2026-08-24T10:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-24T10:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0325,
+              "snippet": "Fix the flaky contacts import integration test Flaky CSV import test fixed by so"
+            },
+            {
+              "ref": "handoff.md",
+              "source": "handoff",
+              "score": 0.0209,
+              "snippet": "# Handoff ## Objective Ship orbit-crm v1.0 on the simplified single-process stac"
+            },
+            {
+              "ref": "project-context.md",
+              "source": "project-context",
+              "score": 0.0204,
+              "snippet": "# Project Context ## Current Objective Ship orbit-crm v1.0 on the simplified sin"
+            },
+            {
+              "ref": "session:2026-08-28T09:30:00.000Z",
+              "source": "sessions",
+              "score": 0.0164,
+              "snippet": "Handoff: prepare the v1.0 release checklist Release checklist drafted from all a"
+            },
+            {
+              "ref": "session:2026-07-08T16:30:00.000Z",
+              "source": "sessions",
+              "score": 0.0161,
+              "snippet": "Wire Redis as the login session cache Login sessions now live in Redis with a 12"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.8,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 13.03
+        },
+        {
+          "id": "q15",
+          "query": "dark mode dashboard theme",
+          "category": "session",
+          "expected": [
+            "session:2026-08-10T09:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-10T09:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0328,
+              "snippet": "Dark mode for the dashboard The dashboard supports dark mode through CSS tokens "
+            },
+            {
+              "ref": "decision:dec-cache-sqlite",
+              "source": "decisions",
+              "score": 0.0161,
+              "snippet": "Replace the Redis session cache with embedded SQLite Redis was the only external"
+            },
+            {
+              "ref": "session:2026-08-26T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0159,
+              "snippet": "Cursor pagination for the contacts list The contacts list uses cursor pagination"
+            },
+            {
+              "ref": "session:2026-07-17T14:20:00.000Z",
+              "source": "sessions",
+              "score": 0.0156,
+              "snippet": "Contacts list page with table and filters The contacts page renders the list wit"
+            },
+            {
+              "ref": "decision:dec-pdf-chromium",
+              "source": "decisions",
+              "score": 0.0154,
+              "snippet": "Render invoice PDFs server side with headless Chromium The client side PDF libra"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.8,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 11.84
+        },
+        {
+          "id": "q16",
+          "query": "API versioning v1 prefix",
+          "category": "decision",
+          "expected": [
+            "decision:dec-api-versioning",
+            "session:2026-07-20T13:30:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-07-20T13:30:00.000Z",
+              "source": "sessions",
+              "score": 0.0323,
+              "snippet": "Freeze /v1 routes and add the version prefix The public API is served under /v1;"
+            },
+            {
+              "ref": "session:2026-07-24T16:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0323,
+              "snippet": "Write API docs for /v1 contacts and campaigns API reference for the contacts and"
+            },
+            {
+              "ref": "decision:dec-api-versioning",
+              "source": "decisions",
+              "score": 0.0315,
+              "snippet": "Version the public API by URL prefix Partners integrate against the REST API and"
+            },
+            {
+              "ref": "project-context.md",
+              "source": "project-context",
+              "score": 0.0204,
+              "snippet": "# Project Context ## Current Objective Ship orbit-crm v1.0 on the simplified sin"
+            },
+            {
+              "ref": "decision:dec-logging-json",
+              "source": "decisions",
+              "score": 0.0161,
+              "snippet": "Structured JSON logs with a request id Debugging a support ticket meant grepping"
+            }
+          ],
+          "precisionAt3": 0.6666666666666666,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.6,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 13.83
+        },
+        {
+          "id": "q17",
+          "query": "cursor pagination contacts list",
+          "category": "session",
+          "expected": [
+            "session:2026-08-26T14:00:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-26T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0328,
+              "snippet": "Cursor pagination for the contacts list The contacts list uses cursor pagination"
+            },
+            {
+              "ref": "session:2026-07-17T14:20:00.000Z",
+              "source": "sessions",
+              "score": 0.0318,
+              "snippet": "Contacts list page with table and filters The contacts page renders the list wit"
+            },
+            {
+              "ref": "session:2026-08-03T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0318,
+              "snippet": "Deduplicate imported contacts by email Duplicate contacts merged by email with a"
+            },
+            {
+              "ref": "session:2026-07-30T11:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0313,
+              "snippet": "CSV import for contacts Contacts can be imported from CSV in batches with a reje"
+            },
+            {
+              "ref": "session:2026-07-07T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0159,
+              "snippet": "Contacts table migration and CRUD routes Contacts CRUD is live on top of a plain"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.8,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 10.93
+        },
+        {
+          "id": "q18",
+          "query": "GDPR data export",
+          "category": "session",
+          "expected": [
+            "session:2026-08-07T16:30:00.000Z"
+          ],
+          "supersededTraps": [],
+          "staleTraps": [],
+          "hits": [
+            {
+              "ref": "session:2026-08-07T16:30:00.000Z",
+              "source": "sessions",
+              "score": 0.0325,
+              "snippet": "GDPR data export endpoint Users can export all of their data as a zip archive. P"
+            },
+            {
+              "ref": "session:2026-08-01T09:45:00.000Z",
+              "source": "sessions",
+              "score": 0.032,
+              "snippet": "Sprint 3 kickoff: webhooks, exports and stability Sprint 3 planned around webhoo"
+            },
+            {
+              "ref": "session:2026-08-03T14:00:00.000Z",
+              "source": "sessions",
+              "score": 0.0164,
+              "snippet": "Deduplicate imported contacts by email Duplicate contacts merged by email with a"
+            },
+            {
+              "ref": "session:2026-08-18T11:30:00.000Z",
+              "source": "sessions",
+              "score": 0.0156,
+              "snippet": "Replace RabbitMQ with a Postgres job queue Email jobs moved from RabbitMQ to a P"
+            },
+            {
+              "ref": "session:2026-08-19T09:20:00.000Z",
+              "source": "sessions",
+              "score": 0.0154,
+              "snippet": "Verify the queue migration and close sprint 3 Sprint 3 closed; RabbitMQ fully re"
+            }
+          ],
+          "precisionAt3": 0.3333333333333333,
+          "recallAt5": 1,
+          "reciprocalRank": 1,
+          "noiseAt5": 0.8,
+          "missing": [],
+          "supersededLeak": false,
+          "staleLeak": false,
+          "leakedRefs": [],
+          "lexicalBackend": "n/a",
+          "warnings": [],
+          "stableAcrossRuns": true,
+          "latencyP50Ms": 20.42
+        }
+      ]
+    }
+  ],
+  "footprint": {
+    "targetTokens": {
+      "min": 300,
+      "max": 500
+    },
+    "charsPerToken": 4,
+    "resumeTool": "codex",
+    "resumeLatencyMs": 11.91,
+    "resumeText": {
+      "chars": 1505,
+      "lines": 22,
+      "estimatedTokens": 377,
+      "status": "within-target"
+    },
+    "resumeJson": {
+      "chars": 10047,
+      "lines": 163,
+      "estimatedTokens": 2512,
+      "status": "above-target"
+    },
+    "handoff": {
+      "chars": 1651,
+      "lines": 35,
+      "estimatedTokens": 413,
+      "status": "within-target"
+    }
+  }
+}

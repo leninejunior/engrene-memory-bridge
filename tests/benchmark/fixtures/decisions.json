@@ -1,0 +1,110 @@
+[
+  {
+    "id": "dec-cache-redis",
+    "ts": "2026-07-08T10:00:00.000Z",
+    "title": "Use Redis for the login session cache",
+    "context": "Login sessions must survive API restarts and be shared by the two API replicas.",
+    "decision": "Store login sessions in Redis with a 12 hour TTL.",
+    "impact": "Adds a Redis container to docker compose and a REDIS_URL setting.",
+    "supersedes": []
+  },
+  {
+    "id": "dec-auth-jwt-24h",
+    "ts": "2026-07-10T09:15:00.000Z",
+    "title": "JWT access tokens valid for 24 hours",
+    "context": "Mobile users complained about being logged out in the middle of the day.",
+    "decision": "Issue JWT access tokens with a 24 hour lifetime and no refresh flow.",
+    "impact": "Simple client code; a stolen access token stays valid for a full day.",
+    "supersedes": []
+  },
+  {
+    "id": "dec-queue-rabbitmq",
+    "ts": "2026-07-15T11:00:00.000Z",
+    "title": "Use RabbitMQ for the email job queue",
+    "context": "Campaign emails must be sent asynchronously and retried on mail provider errors.",
+    "decision": "Publish email jobs to a RabbitMQ queue consumed by a dedicated worker container.",
+    "impact": "Adds RabbitMQ to docker compose and a consumer process to operate.",
+    "supersedes": []
+  },
+  {
+    "id": "dec-api-versioning",
+    "ts": "2026-07-20T13:20:00.000Z",
+    "title": "Version the public API by URL prefix",
+    "context": "Partners integrate against the REST API and break when response fields change.",
+    "decision": "Expose the public API under /v1 and keep /v1 frozen; breaking changes go to /v2.",
+    "impact": "Route files are grouped per version; header based version negotiation is not supported.",
+    "supersedes": []
+  },
+  {
+    "id": "dec-logging-json",
+    "ts": "2026-07-22T08:40:00.000Z",
+    "title": "Structured JSON logs with a request id",
+    "context": "Debugging a support ticket meant grepping unstructured text across two services.",
+    "decision": "Emit one JSON line per log event with level, message, requestId and userId fields.",
+    "impact": "Log lines are machine readable; every HTTP handler propagates the request id.",
+    "supersedes": []
+  },
+  {
+    "id": "dec-i18n-icu",
+    "ts": "2026-07-28T15:10:00.000Z",
+    "title": "Use ICU message format for translations",
+    "context": "Plural rules differ between Portuguese, Spanish and English reminder texts.",
+    "decision": "Store translation strings in ICU message format and format them with Intl.PluralRules.",
+    "impact": "Translators must learn ICU syntax; plural bugs disappear.",
+    "supersedes": []
+  },
+  {
+    "id": "dec-cache-sqlite",
+    "ts": "2026-08-04T14:30:00.000Z",
+    "title": "Replace the Redis session cache with embedded SQLite",
+    "context": "Redis was the only external daemon in the stack and kept the local setup heavy; the two API replicas were merged into one process.",
+    "decision": "Store login sessions in an embedded SQLite table with the same 12 hour TTL and drop the Redis container.",
+    "impact": "docker compose loses the redis service; REDIS_URL is removed; session lookups become a local read.",
+    "supersedes": ["dec-cache-redis"]
+  },
+  {
+    "id": "dec-webhook-retry",
+    "ts": "2026-08-06T09:30:00.000Z",
+    "title": "Retry webhook deliveries with exponential backoff",
+    "context": "Customer endpoints go down for minutes at a time and lost events generated support tickets.",
+    "decision": "Retry failed webhook deliveries with exponential backoff (1m, 5m, 25m, 2h, 10h), five attempts, then park the event in a dead letter table.",
+    "impact": "Delivery is at least once; consumers must deduplicate by event id.",
+    "supersedes": []
+  },
+  {
+    "id": "dec-auth-jwt-15m",
+    "ts": "2026-08-11T16:00:00.000Z",
+    "title": "Shorten JWT access tokens to 15 minutes with refresh rotation",
+    "context": "Security review flagged the 24 hour access token lifetime as too long for a stolen device scenario.",
+    "decision": "Issue 15 minute access tokens plus rotating refresh tokens stored server side; the refresh flow replaces the long lived token.",
+    "impact": "Clients must implement silent refresh; a compromised access token expires within minutes.",
+    "supersedes": ["dec-auth-jwt-24h"]
+  },
+  {
+    "id": "dec-rate-limit",
+    "ts": "2026-08-13T12:00:00.000Z",
+    "title": "Token bucket rate limiting per API key",
+    "context": "One partner script hammered the contacts endpoint and slowed everyone down.",
+    "decision": "Apply a token bucket limiter of 100 requests per minute per API key on all /v1 routes.",
+    "impact": "Clients receive HTTP 429 with a Retry-After header when the bucket is empty.",
+    "supersedes": []
+  },
+  {
+    "id": "dec-queue-pg",
+    "ts": "2026-08-18T10:45:00.000Z",
+    "title": "Move the email job queue to a Postgres table with SKIP LOCKED",
+    "context": "RabbitMQ was under used (a few hundred jobs a day) and its consumer crashed twice on broker restarts.",
+    "decision": "Store email jobs in a Postgres jobs table and poll it with SELECT FOR UPDATE SKIP LOCKED from the API process.",
+    "impact": "One less container; job state is queryable with plain SQL; throughput is limited to a few jobs per second.",
+    "supersedes": ["dec-queue-rabbitmq"]
+  },
+  {
+    "id": "dec-pdf-chromium",
+    "ts": "2026-08-20T17:00:00.000Z",
+    "title": "Render invoice PDFs server side with headless Chromium",
+    "context": "The client side PDF library produced broken layouts for long invoices.",
+    "decision": "Render invoice HTML with headless Chromium in a worker and store the PDF in object storage.",
+    "impact": "Adds a Chromium binary to the worker image; PDFs render identically to the web view.",
+    "supersedes": []
+  }
+]

@@ -13,7 +13,7 @@ import {
 } from "./fs-utils.js";
 import { resolveBridgePaths } from "./paths.js";
 import { redactUnknown } from "./redaction.js";
-import { toJsonLine, validateDecisionEvent, validateSessionEvent } from "./schema.js";
+import { parseJsonLine, toJsonLine, validateDecisionEvent, validateSessionEvent } from "./schema.js";
 
 export interface ReadSessionsResult {
   events: SessionEvent[];
@@ -169,4 +169,98 @@ export async function readHandoff(workspace: string, config: BridgeConfig): Prom
 
   const decoded = decryptTextIfNeeded(text, config, warnings);
   return { text: decoded, warnings };
+}
+
+export interface ReplaceResult extends PersistResult {
+  replaced: boolean;
+}
+
+/**
+ * Rewrites a JSONL file replacing every record matched by `matches` with a single
+ * `replacement` line (first match keeps its position, later duplicates are dropped).
+ * Records that cannot be parsed or decrypted are preserved verbatim.
+ * Appends the replacement when nothing matched.
+ */
+async function replaceJsonlRecord<T>(
+  filePath: string,
+  lockPath: string,
+  config: BridgeConfig,
+  matches: (decoded: T) => boolean,
+  validate: (value: unknown) => value is T,
+  replacementLine: string
+): Promise<boolean> {
+  let replaced = false;
+  await withLock(lockPath, async () => {
+    const text = (await readText(filePath)) ?? "";
+    const lines = text.split(/\r?\n/).filter((line) => line.trim() !== "");
+    const output: string[] = [];
+    for (const line of lines) {
+      let record: unknown;
+      try {
+        record = parseJsonLine(line);
+      } catch {
+        output.push(line);
+        continue;
+      }
+      const decoded = decryptJsonIfNeeded<T>(record, config, []);
+      if (decoded && validate(decoded) && matches(decoded)) {
+        if (!replaced) {
+          output.push(replacementLine);
+          replaced = true;
+        }
+        continue;
+      }
+      output.push(line);
+    }
+    if (!replaced) {
+      output.push(replacementLine);
+    }
+    await atomicWriteFile(filePath, `${output.join("\n")}\n`, 0o600);
+  });
+  return replaced;
+}
+
+export async function replaceDecisionEvent(
+  workspace: string,
+  config: BridgeConfig,
+  decision: DecisionEvent
+): Promise<ReplaceResult> {
+  const paths = resolveBridgePaths(path.resolve(workspace));
+  const event = config.redaction.enabled ? redactUnknown(decision, config.redaction.customPatterns) : decision;
+  if (!validateDecisionEvent(event)) {
+    throw new Error("Invalid decision_event payload.");
+  }
+  const line = toJsonLine(encryptJsonIfNeeded(event, "decision_event", config)).replace(/\n+$/, "");
+  const replaced = await replaceJsonlRecord<DecisionEvent>(
+    paths.decisionsFile,
+    paths.lockFile,
+    config,
+    (decoded) => decoded.id === event.id,
+    validateDecisionEvent,
+    line
+  );
+  return { file: paths.decisionsFile, encrypted: config.encryption.enabled, replaced };
+}
+
+export async function replaceSessionEvent(
+  workspace: string,
+  config: BridgeConfig,
+  session: SessionEvent
+): Promise<ReplaceResult> {
+  const paths = resolveBridgePaths(path.resolve(workspace));
+  const event = config.redaction.enabled ? redactUnknown(session, config.redaction.customPatterns) : session;
+  if (!validateSessionEvent(event)) {
+    throw new Error("Invalid session_event payload.");
+  }
+  const line = toJsonLine(encryptJsonIfNeeded(event, "session_event", config)).replace(/\n+$/, "");
+  const target = sessionFileForDate(paths.sessionsDir, new Date(event.ts));
+  const replaced = await replaceJsonlRecord<SessionEvent>(
+    target,
+    paths.lockFile,
+    config,
+    (decoded) => decoded.ts === event.ts && decoded.tool === event.tool,
+    validateSessionEvent,
+    line
+  );
+  return { file: target, encrypted: config.encryption.enabled, replaced };
 }

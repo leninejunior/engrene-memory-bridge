@@ -288,10 +288,11 @@ Oferecer suporte de primeira classe ao Hermes Agent e Qwen Code com comando de i
 Permitir a sincronização nativa da memória local do projeto com vaults do **Obsidian** (para navegação em grafo visual via Markdown local com wikilinks) e adicionar suporte ao provedor **JEV (Joint Embedding Vectors)** para busca unificada de código e intenção em linguagem natural combinada com SQLite FTS5 BM25.
 
 ### Mudanças Propostas
-1. **Sincronização com Obsidian Vault (`memory-bridge obsidian sync`)**:
+1. **Sincronização com Obsidian Vault (`memory-bridge obsidian [export|import|sync]`)**:
    - Subcomando de sincronização e exportação local para vaults do Obsidian (`--vault <caminho>` ou symlinks).
    - Geração de notas em Markdown com frontmatter YAML, tags (`#memory-bridge`) e **wikilinks interconectados** (`[[dec-123]]`).
    - Mapeamento no **Graph View** do Obsidian para navegação visual do histórico de decisões e sessões dos agentes de IA.
+   - **Importação vault → bridge (issue #6)**: `obsidian import` lê `Decisions/*.md` (casadas por `id`; nota sem `id` vira decisão nova e recebe o `id` de volta no frontmatter), `Sessions/*.md` (casadas por timestamp + tool) e `Project-Context.md`. Idempotente; conflito resolvido por `--prefer vault|bridge` (padrão `vault`); redação de segredos aplicada na entrada; `integrations.obsidian.autoImport` puxa o vault antes de cada `resume`.
 2. **Provedor JEV (Joint Embedding Vectors) + BM25**:
    - Adição do provedor `"jev"` em `semanticSearch.provider`.
    - Suporte a modelos Joint Embedding (Código + Texto no mesmo espaço vetorial latente).
@@ -319,7 +320,7 @@ Permitir a sincronização nativa da memória local do projeto com vaults do **O
 | **14. Performance & Portabilidade**| **Transversal** | **[Concluído]** Zero daemons obrigatórios, execução em milissegundos |
 | **15. Migração & Retrocompatibilidade**| **Transversal** | **[Concluído]** `schemaVersion`, sem breaking changes |
 | **16. Testes Abrangentes** | **Fases 1 a 6** | **[Concluído]** 40 testes unitários e de integração passando 100% |
-| **17. Integração Obsidian Vault** | **Fase 7** | **[Planejado]** Export/sync local com wikilinks `[[dec-id]]` e Graph View |
-| **18. Provedor JEV + BM25** | **Fase 7** | **[Planejado]** Joint Embedding Vectors (Code+Text) com fusão RRF |
+| **17. Integração Obsidian Vault** | **Fase 7** | **[Concluído]** Export com wikilinks `[[dec-id]]` e Graph View (#3); import vault → bridge e `sync` bidirecional (#6) |
+| **18. Provedor JEV + BM25** | **Fase 7** | **[Concluído]** Joint Embedding Vectors (Code+Text) com fusão RRF (#4) |
 | **19. Não Fazer Agora** | **Fora de Escopo** | **[Mantido]** Sem Kubernetes, SaaS, multi-tenant ou cloud lock-in |
 
