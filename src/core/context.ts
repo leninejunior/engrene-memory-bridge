@@ -48,16 +48,80 @@ function parseBulletsFromSection(markdown: string | undefined, sectionTitle: str
   return items;
 }
 
-function derivePendingFromSessions(events: SessionEvent[]): string[] {
+/** Only sessions this recent feed Pending / Next Steps. Measured from the newest session, not from "now",
+ *  so an idle project still shows where it stopped. */
+export const HANDOFF_WINDOW_DAYS = 14;
+export const HANDOFF_MAX_SESSIONS = 25;
+export const HANDOFF_LIST_LIMIT = 8;
+
+const PENDING_MARKER = /\b(todo|pend|pending|fixme|next)\b/i;
+const DONE_MARKER = /^\s*(done|resolved|resolves|fixed|closed|merged|feito|resolvido|conclu[ií]do)\s*[:\-\u2013]\s*(.+)$/i;
+const LEADING_MARKER = /^\s*(todo|pend|pending|fixme|next|done|resolved|resolves|fixed|closed|merged|feito|resolvido|conclu[ií]do)\s*[:\-\u2013]?\s*/i;
+
+function normalizeItem(text: string): string {
+  return text.replace(LEADING_MARKER, "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+/** Newest first, capped in count and in age relative to the newest session. */
+export function recentSessions(events: SessionEvent[]): SessionEvent[] {
+  const latest = events.at(-1);
+  if (!latest) {
+    return [];
+  }
+  const latestTs = Date.parse(latest.ts);
+  const cutoff = Number.isNaN(latestTs) ? Number.NEGATIVE_INFINITY : latestTs - HANDOFF_WINDOW_DAYS * 86_400_000;
+  return events
+    .slice(-HANDOFF_MAX_SESSIONS)
+    .filter((event) => {
+      const ts = Date.parse(event.ts);
+      return Number.isNaN(ts) || ts >= cutoff;
+    })
+    .reverse();
+}
+
+/**
+ * Pending items come from session actions that carry a pending marker (todo/pending/fixme/next),
+ * newest first. An action such as `done: <text>` in the same or a later session retires every
+ * older pending item whose text matches. Nothing is read back from a previous handoff.
+ */
+export function derivePendingFromSessions(events: SessionEvent[]): string[] {
+  const done = new Set<string>();
   const pending: string[] = [];
-  for (const event of events.slice(-10)) {
+  // Newest session first, so the cut in compactList drops old items and never new ones.
+  for (const event of recentSessions(events)) {
+    // Retire within the same session too: ["next: X", "done: X"] must not leave X pending.
+    const retiredHere: string[] = [];
     for (const action of event.actions) {
-      if (/\b(todo|pend|pending|fixme|next)\b/i.test(action)) {
+      const finished = DONE_MARKER.exec(action);
+      const key = finished ? normalizeItem(finished[2] ?? "") : "";
+      if (key) {
+        retiredHere.push(key);
+      }
+    }
+    for (const key of retiredHere) {
+      done.add(key);
+    }
+    for (const action of event.actions) {
+      if (DONE_MARKER.test(action) || !PENDING_MARKER.test(action)) {
+        continue;
+      }
+      // Exact match after normalization: a loose `includes` would let `done: PR` retire `preparar`.
+      const key = normalizeItem(action);
+      if (key && !done.has(key)) {
         pending.push(action);
       }
     }
   }
   return pending;
+}
+
+/** Next steps are the newest session's actions, minus `done:` markers; older sessions are not replayed. */
+export function deriveNextStepsFromSessions(events: SessionEvent[]): string[] {
+  const latest = events.at(-1);
+  if (!latest) {
+    return [];
+  }
+  return latest.actions.filter((action) => !DONE_MARKER.test(action));
 }
 
 function compactList(items: string[], limit: number): string[] {
@@ -136,20 +200,22 @@ export async function buildContextSnapshot(
   const { active: activeDecisions } = filterActiveDecisions(decisionsResult.events);
   const recentDecisions = activeDecisions.slice(-5);
 
+  // Pinned items live in project-context.md (hand-maintained). The previous handoff is never read
+  // back: doing so re-injected every item forever and let old items push new ones out (issue #15).
   const pending = compactList(
     [
-      ...parseBulletsFromSection(handoffResult.text, "Pending"),
+      ...parseBulletsFromSection(projectContext, "Pending"),
       ...derivePendingFromSessions(sessionsResult.events)
     ],
-    8
+    HANDOFF_LIST_LIMIT
   );
 
   const nextSteps = compactList(
     [
-      ...parseBulletsFromSection(handoffResult.text, "Next Steps"),
-      ...(latestSession?.actions ?? [])
+      ...parseBulletsFromSection(projectContext, "Next Steps"),
+      ...deriveNextStepsFromSessions(sessionsResult.events)
     ],
-    8
+    HANDOFF_LIST_LIMIT
   );
 
   const objective =
