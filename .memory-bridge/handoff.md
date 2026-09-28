@@ -1,7 +1,7 @@
 # Handoff
 
 ## Objective
-Reduzir o peso do repositório apontado no review externo
+Executar tarefas de correção do PR e git
 
 ## Recent Decisions
 - [dec-muc3rsh5] Obsidian Vault Export & JEV BM25 Hybrid Provider Support: Added optional Obsidian vault sync (memory-bridge obsidian --vault <path>) exporting Markdown notes with YAML frontmatter and wikilinks, and added 'jev' semantic provider option for joint code-text search combined with BM25 SQLite FTS5.
@@ -25,7 +25,6 @@ Reduzir o peso do repositório apontado no review externo
 - updated README.md
 
 ## Recent Artifacts
-- tests/unit/obsidian-import.test.ts
 - https://github.com/leninejunior/engrene-memory-bridge/releases/tag/v0.3.0
 - https://github.com/leninejunior/engrene-memory-bridge/pull/8
 - docs/benchmarks/2026-09-22-retrieval.md
@@ -37,3 +36,4 @@ Reduzir o peso do repositório apontado no review externo
 - assets/screenshots/
 - README.md
 - .gitignore
+- /Users/leninedeorochajunior/orca/workspaces/crm-imobiliario/foto-picker-1411/CORRECAO-1414b.md
