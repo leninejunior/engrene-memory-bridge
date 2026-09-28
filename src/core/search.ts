@@ -225,9 +225,14 @@ export async function searchMemory(args: {
   const sortedTextHits = textHits.sort((a, b) => b.score - a.score).slice(0, Math.max(1, limit));
   let lexicalHits = sortedTextHits;
   if (semanticEnabled(config) && (await isSqliteSupported())) {
+    if ((await getSemanticDocCount(workspace, config)) === 0) {
+      await indexSemanticFromState(workspace, config);
+    }
     const ftsHits = await ftsSearch(workspace, config, query, limit);
     if (ftsHits.length > 0) {
       lexicalHits = ftsHits;
+    } else {
+      warnings.push("FTS5 index empty or no hits found, using in-memory BM25");
     }
   }
 
