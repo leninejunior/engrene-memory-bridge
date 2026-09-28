@@ -1,7 +1,7 @@
 # Handoff
 
 ## Objective
-Revisar o PR #17 e implementar a issue #15
+Publicar a 0.3.1 e fechar a release
 
 ## Recent Decisions
 - [dec-muc3rsh5] Obsidian Vault Export & JEV BM25 Hybrid Provider Support: Added optional Obsidian vault sync (memory-bridge obsidian --vault <path>) exporting Markdown notes with YAML frontmatter and wikilinks, and added 'jev' semantic provider option for joint code-text search combined with BM25 SQLite FTS5.
@@ -16,6 +16,8 @@ Revisar o PR #17 e implementar a issue #15
 - implementar derivacao de Pending
 - next: decidir entre PR 18 e o trabalho do Codex na issue 15
 - next: publicar 0.3.1 no npm
+- next: decidir entre o PR 18 e o trabalho do Codex na issue 15
+- next: decidir as issues 13 9 e 10
 
 ## Next Steps
 - Login to npm registry (`npm login`)
@@ -28,8 +30,6 @@ Revisar o PR #17 e implementar a issue #15
 - updated README.md
 
 ## Recent Artifacts
-- tests/benchmark/harness.ts
-- src/core/config.ts
 - src/core/redaction.ts
 - tests/unit/gitignore-optin-and-leak-detection.test.ts
 - .gitignore
@@ -40,3 +40,5 @@ Revisar o PR #17 e implementar a issue #15
 - https://github.com/leninejunior/engrene-memory-bridge/pull/18
 - src/core/context.ts
 - tests/unit/handoff-pending.test.ts
+- https://github.com/leninejunior/engrene-memory-bridge/releases/tag/v0.3.1
+- https://www.npmjs.com/package/engrene-memory-bridge
