@@ -28,6 +28,7 @@ Revisar o PR #17 e implementar a issue #15
 - updated README.md
 
 ## Recent Artifacts
+- tests/benchmark/harness.ts
 - src/core/config.ts
 - src/core/redaction.ts
 - tests/unit/gitignore-optin-and-leak-detection.test.ts
@@ -35,7 +36,6 @@ Revisar o PR #17 e implementar a issue #15
 - assets/screenshots/
 - README.md
 - .gitignore
-- /Users/leninedeorochajunior/orca/workspaces/crm-imobiliario/foto-picker-1411/CORRECAO-1414b.md
 - https://github.com/leninejunior/engrene-memory-bridge/pull/17
 - https://github.com/leninejunior/engrene-memory-bridge/pull/18
 - src/core/context.ts
