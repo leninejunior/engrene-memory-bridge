@@ -1,7 +1,7 @@
 # Handoff
 
 ## Objective
-Reduzir o peso do repositório apontado no review externo
+Revisar o PR #17 e implementar a issue #15
 
 ## Recent Decisions
 - [dec-muc3rsh5] Obsidian Vault Export & JEV BM25 Hybrid Provider Support: Added optional Obsidian vault sync (memory-bridge obsidian --vault <path>) exporting Markdown notes with YAML frontmatter and wikilinks, and added 'jev' semantic provider option for joint code-text search combined with BM25 SQLite FTS5.
@@ -13,6 +13,9 @@ Reduzir o peso do repositório apontado no review externo
 ## Pending
 - publish npm package (requires npm login)
 - TODO: push community roadmap to remote
+- implementar derivacao de Pending
+- next: decidir entre PR 18 e o trabalho do Codex na issue 15
+- next: publicar 0.3.1 no npm
 
 ## Next Steps
 - Login to npm registry (`npm login`)
@@ -25,10 +28,6 @@ Reduzir o peso do repositório apontado no review externo
 - updated README.md
 
 ## Recent Artifacts
-- tests/unit/obsidian-import.test.ts
-- https://github.com/leninejunior/engrene-memory-bridge/releases/tag/v0.3.0
-- https://github.com/leninejunior/engrene-memory-bridge/pull/8
-- docs/benchmarks/2026-09-22-retrieval.md
 - tests/benchmark/harness.ts
 - src/core/config.ts
 - src/core/redaction.ts
@@ -37,3 +36,7 @@ Reduzir o peso do repositório apontado no review externo
 - assets/screenshots/
 - README.md
 - .gitignore
+- https://github.com/leninejunior/engrene-memory-bridge/pull/17
+- https://github.com/leninejunior/engrene-memory-bridge/pull/18
+- src/core/context.ts
+- tests/unit/handoff-pending.test.ts
