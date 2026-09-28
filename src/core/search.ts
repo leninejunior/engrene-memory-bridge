@@ -225,14 +225,15 @@ export async function searchMemory(args: {
   const sortedTextHits = textHits.sort((a, b) => b.score - a.score).slice(0, Math.max(1, limit));
   let lexicalHits = sortedTextHits;
   if (semanticEnabled(config) && (await isSqliteSupported())) {
+    // Build the index on first use so text mode does not answer from in-memory BM25 until some
+    // semantic/hybrid search happens to populate it (issue #11). A query with no FTS5 match then
+    // falls through to the in-memory hits, which is an ordinary miss and not a warning condition.
     if ((await getSemanticDocCount(workspace, config)) === 0) {
       await indexSemanticFromState(workspace, config);
     }
     const ftsHits = await ftsSearch(workspace, config, query, limit);
     if (ftsHits.length > 0) {
       lexicalHits = ftsHits;
-    } else {
-      warnings.push("FTS5 index empty or no hits found, using in-memory BM25");
     }
   }
 
