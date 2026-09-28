@@ -67,6 +67,16 @@ Fields (required):
 
 If some files are missing, command must not fail hard; return partial context + warnings.
 
+Pending and next steps are derived, not accumulated:
+- **Pending** = bullets under `## Pending` in `project-context.md` (pinned by hand) followed by session actions
+  carrying a pending marker (`todo`, `pending`, `fixme`, `next`), newest session first, from at most the last
+  25 sessions and only those within 14 days of the newest session. An action `done: <text>` (also `resolved`,
+  `fixed`, `closed`, `merged`) in the same or a later session retires every older pending item whose text
+  matches. The list is cut to 8 items, so old items fall off, never new ones.
+- **Next steps** = bullets under `## Next Steps` in `project-context.md` followed by the newest session's
+  actions (minus `done:` markers), cut to 8.
+- `handoff build` and `consolidate` never read `Pending` / `Next Steps` back from the previous `handoff.md`.
+
 ## 4. Security
 
 ### 4.1 Redaction & Path Exclusions
