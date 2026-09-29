@@ -1,7 +1,7 @@
 # Handoff
 
 ## Objective
-Fechar a issue 15 e preparar a release 0.4.0
+Corrigir a comparacao com o Hindsight no HERMES.md
 
 ## Recent Decisions
 - [dec-muc3rsh5] Obsidian Vault Export & JEV BM25 Hybrid Provider Support: Added optional Obsidian vault sync (memory-bridge obsidian --vault <path>) exporting Markdown notes with YAML frontmatter and wikilinks, and added 'jev' semantic provider option for joint code-text search combined with BM25 SQLite FTS5.
@@ -11,6 +11,7 @@ Fechar a issue 15 e preparar a release 0.4.0
 - [dec-mudi62tf] This repository commits its own .memory-bridge/ (selective .gitignore): Track config.json, decisions.jsonl, sessions/*.jsonl, handoff.md and project-context.md in Git; ignore only vector.sqlite, .lock and observations/. Every log/decision/handoff change is committed together with the code. redaction.customPatterns redacts IPv4(:port); hostnames and SSH aliases are not covered, so never put server names in summaries (the repo is public).
 
 ## Pending
+- next: publicar 0.4.0 no npm com 2FA
 - next: dono publicar 0.4.0 no npm com 2FA
 - next: decidir issues 13 9 e 10
 - next: decidir entre o PR 18 e o trabalho do Codex na issue 15
@@ -20,16 +21,12 @@ Fechar a issue 15 e preparar a release 0.4.0
 - next: publicar 0.3.1 no npm
 
 ## Next Steps
-- mesclar PR 18
-- fechar issue 15
-- bump 0.4.0
-- rodar suite na VPS
-- criar tag e release
-- next: dono publicar 0.4.0 no npm com 2FA
-- next: decidir issues 13 9 e 10
+- verificar catalogo do hermes
+- corrigir 6 afirmacoes
+- adicionar nota de transparencia
+- next: publicar 0.4.0 no npm com 2FA
 
 ## Recent Artifacts
-- tests/unit/gitignore-optin-and-leak-detection.test.ts
 - .gitignore
 - assets/screenshots/
 - README.md
@@ -41,3 +38,4 @@ Fechar a issue 15 e preparar a release 0.4.0
 - https://github.com/leninejunior/engrene-memory-bridge/releases/tag/v0.3.1
 - https://www.npmjs.com/package/engrene-memory-bridge
 - https://github.com/leninejunior/engrene-memory-bridge/releases/tag/v0.4.0
+- HERMES.md
