@@ -133,7 +133,9 @@ export async function loadConfig(workspace: string): Promise<ConfigLoadResult> {
             maxSessions: parsed.capture.maxSessions ?? 30,
             exclude: Array.isArray(parsed.capture.exclude) && parsed.capture.exclude.length > 0
               ? parsed.capture.exclude
-              : DEFAULT_CAPTURE_CONFIG.exclude
+              : DEFAULT_CAPTURE_CONFIG.exclude,
+            ...(parsed.capture.includePrompts === true ? { includePrompts: true } : {}),
+            ...(parsed.capture.includeCommands === true ? { includeCommands: true } : {})
           }
         }
       : {}),

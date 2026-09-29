@@ -40,6 +40,10 @@ export interface CaptureConfig {
   retentionDays: number;
   maxSessions: number;
   exclude: string[];
+  /** Store the user's prompt text in observations. Off by default: it is the most sensitive field. */
+  includePrompts?: boolean;
+  /** Store shell command text in observations. Off by default: commands carry hosts and paths. */
+  includeCommands?: boolean;
 }
 
 export type ObservationType = "session_start" | "user_prompt" | "tool_call" | "tool_result" | "session_end";

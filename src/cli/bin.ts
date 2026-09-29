@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { getBoolFlag, getListFlag, getStringFlag, parseArgs } from "./args.js";
 import { fail, printOutput } from "./output.js";
@@ -16,6 +18,12 @@ import { appendDecisionEvent, appendSessionEvent, saveHandoff } from "../core/st
 import { redactUnknown } from "../core/redaction.js";
 import { semanticEnabled, upsertSemanticDoc } from "../core/vector.js";
 import { appendObservation } from "../core/capture.js";
+import {
+  buildObservationFromHook,
+  captureOptionsFromConfig,
+  parseClaudeHookPayload,
+  renderClaudeSettingsHook
+} from "../core/hooks.js";
 import { getMemoryStats } from "../core/stats.js";
 import { startMcpServer } from "../mcp/server.js";
 import { startUiServer } from "../ui/server.js";
@@ -39,10 +47,11 @@ Commands:
   doctor [--workspace <path>] [--json]
   stats [--workspace <path>] [--json]
   observe --type <type> --content <text> [--files a,b] [--source <src>] [--workspace <path>] [--json]
+  observe --stdin            (lifecycle hook mode: reads an agent hook payload on stdin, prints nothing, always exits 0)
   search <query> [--mode text|semantic|hybrid] [--limit <n>] [--workspace <path>] [--json]
   mcp [--workspace <path>]
   install <hermes|antigravity> [--workspace <path>] [--json]
-  hook print <zsh|bash|fish|aider|claude|git|antigravity|hermes|qwen|cursor|mcp> [--json]
+  hook print <zsh|bash|fish|aider|claude|claude-prompt|git|antigravity|hermes|qwen|cursor|mcp> [--json]
   ui [--workspace <path>] [--host <host>] [--port <n>] [--readonly] [--json]
   obsidian [export|import|sync] [--vault <path>] [--prefer vault|bridge] [--workspace <path>] [--json]
   ce [--workspace <path>] [--json]
@@ -434,6 +443,15 @@ async function commandUi(argv: string[], asJson: boolean): Promise<void> {
   });
 }
 
+/** Absolute path to this CLI, because a hook's PATH is not guaranteed and `npx` costs seconds per call. */
+function resolveBinPath(): string {
+  try {
+    return fileURLToPath(import.meta.url);
+  } catch {
+    return "memory-bridge";
+  }
+}
+
 function generateHookSnippet(target: string): string {
   switch (target.toLowerCase()) {
     case "zsh":
@@ -476,7 +494,20 @@ read:
   - .memory-bridge/project-context.md
 `;
     case "claude":
-      return `# Claude Code / CLI prompt instruction snippet
+      // Real lifecycle hooks: memory is captured whether or not the agent remembers to log.
+      return `# Claude Code lifecycle hooks.
+# Merge the "hooks" key into .claude/settings.json in your project (preferred: it is
+# scoped to this repo and can be committed) or into ~/.claude/settings.json.
+# The command writes nothing to stdout and always exits 0, so it cannot disturb a session,
+# and it does nothing in a directory that is not a memory-bridge workspace.
+# Observations land in .memory-bridge/observations/ and become sessions on \`memory-bridge consolidate\`.
+# Prompt and shell-command text are NOT stored unless you opt in with
+# "capture": { "enabled": true, "includePrompts": true, "includeCommands": true } in .memory-bridge/config.json.
+
+${renderClaudeSettingsHook(resolveBinPath())}
+`;
+    case "claude-prompt":
+      return `# Claude Code / CLI prompt instruction snippet (for agents without lifecycle hooks)
 Before answering or editing files, read .memory-bridge/handoff.md and recent decisions in .memory-bridge/decisions.jsonl.
 When concluding your task, provide a concise summary with intent, actions, and modified artifacts so it can be logged via memory-bridge log.
 `;
@@ -537,7 +568,7 @@ When wrapping up, call: mb-cursor post --intent "<intent>" --summary "<summary>"
 }
 `;
     default:
-      return `# Unknown hook target: ${target}. Supported targets: zsh, bash, fish, aider, claude, git, antigravity, hermes, qwen, cursor, mcp\n`;
+      return `# Unknown hook target: ${target}. Supported targets: zsh, bash, fish, aider, claude, claude-prompt, git, antigravity, hermes, qwen, cursor, mcp\n`;
   }
 }
 
@@ -546,7 +577,7 @@ async function commandHook(argv: string[], asJson: boolean): Promise<void> {
   const target = argv[1];
 
   if (!action || action !== "print" || !target) {
-    fail("Usage: memory-bridge hook print <zsh|bash|fish|aider|claude|git|antigravity|hermes|qwen|cursor|mcp> [--json]", asJson);
+    fail("Usage: memory-bridge hook print <zsh|bash|fish|aider|claude|claude-prompt|git|antigravity|hermes|qwen|cursor|mcp> [--json]", asJson);
   }
 
   const snippet = generateHookSnippet(target);
@@ -645,8 +676,69 @@ async function commandStats(argv: string[], asJson: boolean): Promise<void> {
   }
 }
 
+async function readStdin(): Promise<string> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks).toString("utf8");
+}
+
+/**
+ * Lifecycle-hook mode. Contract, because this runs inside someone else's session:
+ * prints nothing on stdout, never throws, and always exits 0 so it can never block a tool.
+ * It also refuses to create anything in a directory that is not already a memory-bridge
+ * workspace, so a user-level hook cannot scatter `.memory-bridge/` across every repo opened.
+ */
+async function commandObserveFromStdin(): Promise<void> {
+  try {
+    const raw = await readStdin();
+    const parsedHook = parseClaudeHookPayload(raw);
+    if (!parsedHook) {
+      return;
+    }
+    const workspace = resolveWorkspaceWithGitFallback(parsedHook.cwd ?? process.cwd());
+    if (!existsSync(path.join(workspace, ".memory-bridge", "config.json"))) {
+      return;
+    }
+    const { config } = await loadConfig(workspace);
+    const options = captureOptionsFromConfig(config);
+    const reparsed = parseClaudeHookPayload(raw, options) ?? parsedHook;
+    const observation = buildObservationFromHook(reparsed, workspace);
+
+    // Which files a session touched cannot be read from tool inputs alone: an agent that edits
+    // through the shell (sed, a heredoc) reports no file_path at all. Measured on a real session:
+    // 5 tool events, 0 files. Git knows regardless of which tool did the writing, so the session
+    // boundaries carry the working-tree state. Only here, never per tool call, since it spawns git.
+    // Also on user_prompt, not only at the boundaries: SessionEnd runs under a short shared
+    // budget and was observed being dropped on a loaded machine, which would lose the snapshot
+    // entirely. UserPromptSubmit fires once per turn, so the cost of spawning git stays bounded.
+    if (
+      observation.type === "session_start" ||
+      observation.type === "session_end" ||
+      observation.type === "user_prompt"
+    ) {
+      const changes = detectGitChanges(workspace);
+      if (changes.branch) {
+        observation.payload.branch = changes.branch;
+      }
+      if (changes.modifiedFiles.length > 0) {
+        observation.payload.files = changes.modifiedFiles.slice(0, 50);
+      }
+    }
+
+    await appendObservation(workspace, config, observation);
+  } catch {
+    // Observation is best-effort: a failure here must never surface in the observed session.
+  }
+}
+
 async function commandObserve(argv: string[], asJson: boolean): Promise<void> {
   const parsed = parseArgs(argv);
+  if (getBoolFlag(parsed, "stdin")) {
+    await commandObserveFromStdin();
+    return;
+  }
   const workspace = normalizeWorkspace(getStringFlag(parsed, "workspace"));
   const { config } = await loadConfig(workspace);
 

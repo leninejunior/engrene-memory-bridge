@@ -1,7 +1,7 @@
 # Handoff
 
 ## Objective
-Reposicionar a comparacao com o Hindsight depois de descobrir a integracao Coding Agents
+Implementar captura automatica por hooks de ciclo de vida
 
 ## Recent Decisions
 - [dec-muc3rsh5] Obsidian Vault Export & JEV BM25 Hybrid Provider Support: Added optional Obsidian vault sync (memory-bridge obsidian --vault <path>) exporting Markdown notes with YAML frontmatter and wikilinks, and added 'jev' semantic provider option for joint code-text search combined with BM25 SQLite FTS5.
@@ -21,18 +21,15 @@ Reposicionar a comparacao com o Hindsight depois de descobrir a integracao Codin
 - next: decidir entre PR 18 e o trabalho do Codex na issue 15
 
 ## Next Steps
-- verificar doc do Hindsight
-- consultar API do GitHub
-- reescrever secao do HERMES.md
-- corrigir INTEGRATIONS.md
-- next: decidir se o projeto muda de posicionamento
+- escrever src/core/hooks.ts
+- adicionar observe --stdin
+- emitir settings.json real
+- corrigir detectGitChanges
+- corrigir consolidate
+- 9 testes novos
+- medir sessao real
 
 ## Recent Artifacts
-- README.md
-- .gitignore
-- https://github.com/leninejunior/engrene-memory-bridge/pull/17
-- https://github.com/leninejunior/engrene-memory-bridge/pull/18
-- src/core/context.ts
 - tests/unit/handoff-pending.test.ts
 - https://github.com/leninejunior/engrene-memory-bridge/releases/tag/v0.3.1
 - https://www.npmjs.com/package/engrene-memory-bridge
@@ -40,3 +37,8 @@ Reposicionar a comparacao com o Hindsight depois de descobrir a integracao Codin
 - HERMES.md
 - HERMES.md
 - INTEGRATIONS.md
+- src/core/hooks.ts
+- src/cli/bin.ts
+- src/core/git.ts
+- src/core/consolidate.ts
+- tests/unit/hooks-observe.test.ts

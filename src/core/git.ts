@@ -60,11 +60,26 @@ export function detectGitChanges(workspace: string): GitChangesResult {
       cwd: workspace,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"]
-    }).trim();
+      // trimEnd only: `git status --porcelain` writes a two-character status field, and an
+      // unstaged modification starts with a space (" M path"). Trimming the head of the output
+      // shifted the first line left, so slice(3) ate the first character of its path.
+    }).trimEnd();
 
     if (statusOut) {
-      for (const line of statusOut.split(/\r?\n/)) {
-        const file = line.slice(3).trim();
+      for (const rawLine of statusOut.split(/\r?\n/)) {
+        if (rawLine.length < 4) {
+          continue;
+        }
+        let file = rawLine.slice(3).trim();
+        // Renames and copies are reported as "old -> new"; the destination is what now exists.
+        const renamed = file.split(" -> ");
+        if (renamed.length === 2 && renamed[1]) {
+          file = renamed[1]!.trim();
+        }
+        // Paths containing spaces or non-ASCII are quoted by git.
+        if (file.startsWith('"') && file.endsWith('"') && file.length >= 2) {
+          file = file.slice(1, -1);
+        }
         if (file && !file.startsWith(".memory-bridge/")) {
           modifiedFiles.push(file);
         }
