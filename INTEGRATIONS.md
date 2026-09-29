@@ -144,7 +144,7 @@ The repository provides a declarative agent skill:
 memory-bridge install hermes
 ```
 
-> **Why Memory Bridge over Hermes Hindsight?** While Hermes Agent provides an optional plugin called Hindsight, it requires heavy Python dependencies (`transformers`, `sentence-transformers`), active daemons, and remains siloed inside Hermes. Memory Bridge connects Hermes with Claude, Cursor, Codex, and Gemini with zero daemons and zero external dependencies. See full comparison in [`HERMES.md`](./HERMES.md).
+> **Memory Bridge or Hindsight?** Hindsight covers more agents and captures automatically, including a Coding Agents integration spanning 40+ tools with one shared memory bank per repository. It stores that memory outside your repo and needs an LLM API key for fact extraction, even in local daemon mode. Memory Bridge is the opposite trade: you log explicitly, but the memory is JSONL and Markdown inside the repo, reviewable in a pull request, with zero dependencies and no network. Full comparison, including where Hindsight wins, in [`HERMES.md`](./HERMES.md).
 
 #### Antigravity Setup:
 ```bash

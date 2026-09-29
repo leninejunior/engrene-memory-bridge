@@ -1,7 +1,7 @@
 # Handoff
 
 ## Objective
-Corrigir a comparacao com o Hindsight no HERMES.md
+Reposicionar a comparacao com o Hindsight depois de descobrir a integracao Coding Agents
 
 ## Recent Decisions
 - [dec-muc3rsh5] Obsidian Vault Export & JEV BM25 Hybrid Provider Support: Added optional Obsidian vault sync (memory-bridge obsidian --vault <path>) exporting Markdown notes with YAML frontmatter and wikilinks, and added 'jev' semantic provider option for joint code-text search combined with BM25 SQLite FTS5.
@@ -11,6 +11,7 @@ Corrigir a comparacao com o Hindsight no HERMES.md
 - [dec-mudi62tf] This repository commits its own .memory-bridge/ (selective .gitignore): Track config.json, decisions.jsonl, sessions/*.jsonl, handoff.md and project-context.md in Git; ignore only vector.sqlite, .lock and observations/. Every log/decision/handoff change is committed together with the code. redaction.customPatterns redacts IPv4(:port); hostnames and SSH aliases are not covered, so never put server names in summaries (the repo is public).
 
 ## Pending
+- next: decidir se o projeto muda de posicionamento
 - next: publicar 0.4.0 no npm com 2FA
 - next: dono publicar 0.4.0 no npm com 2FA
 - next: decidir issues 13 9 e 10
@@ -18,17 +19,15 @@ Corrigir a comparacao com o Hindsight no HERMES.md
 - next: decidir as issues 13 9 e 10
 - implementar derivacao de Pending
 - next: decidir entre PR 18 e o trabalho do Codex na issue 15
-- next: publicar 0.3.1 no npm
 
 ## Next Steps
-- verificar catalogo do hermes
-- corrigir 6 afirmacoes
-- adicionar nota de transparencia
-- next: publicar 0.4.0 no npm com 2FA
+- verificar doc do Hindsight
+- consultar API do GitHub
+- reescrever secao do HERMES.md
+- corrigir INTEGRATIONS.md
+- next: decidir se o projeto muda de posicionamento
 
 ## Recent Artifacts
-- .gitignore
-- assets/screenshots/
 - README.md
 - .gitignore
 - https://github.com/leninejunior/engrene-memory-bridge/pull/17
@@ -39,3 +38,5 @@ Corrigir a comparacao com o Hindsight no HERMES.md
 - https://www.npmjs.com/package/engrene-memory-bridge
 - https://github.com/leninejunior/engrene-memory-bridge/releases/tag/v0.4.0
 - HERMES.md
+- HERMES.md
+- INTEGRATIONS.md
