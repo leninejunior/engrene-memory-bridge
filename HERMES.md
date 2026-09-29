@@ -105,79 +105,64 @@ mb-hermes post \
 
 ---
 
-## ⚖️ Deep Dive: Hermes Hindsight Plugin vs. Engrene Memory Bridge
+## ⚖️ Hindsight vs. Engrene Memory Bridge
 
-Hermes Agent ships a memory plugin called **Hindsight** in its plugin catalog (`plugin-catalog/hindsight.yaml`, installed under `plugins/memory/hindsight/`). It is a **community-tier** plugin maintained by **vectorize-io**, the same provider that previously shipped in-tree. When working with Hermes, developers often ask: **"What is Hindsight, and why use Engrene Memory Bridge instead, or alongside it?"**
+Hindsight, by **vectorize-io**, is the memory engine most people will compare this project against. It is worth being precise about what it does, because it does more than a Hermes plugin.
 
-Here is the architectural breakdown, with a note at the end on what we measured and what we did not.
-
----
-
-### 1. What is Hermes Hindsight?
-
-Hindsight is an automated episodic and entity-graph memory engine tailored specifically for the Python runtime of Hermes Agent:
-* **Version**: 1.0.1 at the time of writing, requiring Hermes `>=0.21.4`.
-* **Technology Stack**: Python. Per the Hermes catalog entry, `local_embedded` mode installs the `hindsight-all` PyPI package into the Hermes virtualenv on first use, through core's lazy-install path (subject to `security.allow_lazy_installs`). `hermes memory setup` also fetches a bank-template catalog from `raw.githubusercontent.com`.
-* **Execution Modes**: `cloud`, `local embedded` and `local external`. Embedded mode runs the engine in-process alongside Hermes; cloud mode sends turns to the Hindsight API.
-* **Capabilities**: knowledge graph, entity resolution, multi-strategy retrieval (`recall` / `reflect` / `retain`) and **automatic per-turn capture**.
-* **Storage Location**: outside your repository, in Hermes' user-level state.
+Written by the Memory Bridge maintainers. Verify anything that matters to you; the sources are linked.
 
 ---
 
-### 2. Why Hindsight Causes Friction in Modern Dev Workflows
+### 1. What Hindsight is
 
-While Hindsight has impressive knowledge-graph capabilities, in real-world multi-agent software engineering it introduces significant operational bottlenecks:
+Two separate things share the name.
 
-| Limitation in Hindsight | Real-World Pain Point |
+**The Hermes plugin** (`plugin-catalog/hindsight.yaml`, community tier, v1.0.1, requires Hermes `>=0.21.4`): knowledge graph, entity resolution, `recall` / `reflect` / `retain`, and automatic per-turn capture. Runs in `cloud`, `local embedded` or `local external` mode. In embedded mode the `hindsight-all` PyPI package is lazy-installed into the Hermes virtualenv.
+
+**The Coding Agents integration**, which is the one that overlaps with this project. Per [its documentation](https://hindsight.vectorize.io/sdks/integrations/coding-agents):
+
+* One package covers **40+ coding agents**, including Claude Code, Codex CLI, Cursor CLI, Kilo CLI, opencode and GitHub Copilot CLI.
+* **One memory bank per repository, shared by every agent.** The default bank template is `coding-agent::{gitProject}`, and linked worktrees of the same repo share a bank.
+* **Ingestion is automatic**, with no setup command: session/prompt/stop hooks plus continuous ingestion of git history, commit messages and optionally full diffs.
+* Storage is **outside the repository**: Hindsight Cloud, a self-hosted server, or a local daemon on `127.0.0.1:9077` writing to `~/.hindsight/`.
+* Even the local daemon requires an **LLM API key** (OpenAI, Anthropic, Gemini or Groq) for fact extraction.
+
+If you are looking for the broadest automatic memory across coding agents, that is Hindsight, and this project does not match it.
+
+---
+
+### 2. Where Hindsight is stronger
+
+Stated plainly, because pretending otherwise wastes your time.
+
+| | Hindsight |
 |---|---|
-| **No shared project memory** | Hindsight is a product with its own SDKs and integrations, but the Hermes plugin keeps memory in Hermes' own store. Switching to **Claude Code**, **Cursor**, **Codex**, **Gemini** or **Antigravity** means those agents do not read it, unless you adopt Hindsight's API in each of them. |
-| **Python runtime and lazy install** | Embedded mode pulls a Python dependency chain into the Hermes venv on first use and downloads model assets. We did not benchmark its memory or startup cost; see the note at the end. |
-| **Daemon & Port Fragility** | **Background Process Failures**: Operating background daemons on local ports leads to port collisions, orphaned processes, and connection timeouts if the daemon crashes or fails to boot. |
-| **Opaque Black-Box Data** | **Non-Auditable**: Memories are serialized in internal binary/database schemas outside the repository. You cannot run `git diff` on what the agent learned, and team members cannot review memory updates in Pull Requests. |
-| **Cloud Lock-In Risk** | When running in hosted mode, project context and code snippets are dispatched to external cloud APIs, violating strict zero-trust or offline/air-gapped privacy requirements. |
+| **Automatic capture** | Hooks record every session with no agent cooperation. Memory Bridge only records what an agent explicitly logs, so a forgetful agent leaves no trace. |
+| **Agent coverage** | 40+ integrations in one package, maintained full time. This project ships thin `mb-*` wrappers and an MCP server. |
+| **Git history ingestion** | Commits and diffs flow into memory continuously. We record only what a session reports. |
+| **Retrieval** | Knowledge graph and entity resolution. Ours is BM25 plus local embeddings; our own benchmark puts the pure semantic path at P@3 0.315, well below the lexical one. |
 
 ---
 
-### 3. How Engrene Memory Bridge Solves This
+### 3. Where Memory Bridge is different
 
-**Engrene Memory Bridge** was engineered specifically as an open, universal standard for multi-agent software engineering:
+Three differences, and they follow from architecture rather than from effort, which is why they are unlikely to close.
 
-1. **Universal Interoperability (The Shared Brain)**:
-   - Memory Bridge does not belong to any single AI vendor.
-   - It creates a standardized `.memory-bridge/` folder in the project root.
-   - **Hermes Agent**, **Claude Code**, **Cursor**, **Codex**, **Gemini**, and **Antigravity** all read from and write to the *exact same memory store*.
-   - Example: You brainstorm an architecture in Claude Code (`mb-claude post`), implement features with Hermes Agent (`mb-hermes pre`), and debug in Cursor — everyone shares identical, up-to-date context.
+1. **Memory lives in the repository and is reviewable.** `.memory-bridge/` is JSONL and Markdown next to the code. What the agent recorded shows up in `git diff`, travels with `git clone` and `git pull`, and can be challenged in a pull request. Hindsight stores outside the repo by design, so its memory cannot be reviewed that way. In this repository, a session that an agent wrote about the wrong project was caught precisely because it appeared in a diff.
 
-2. **Zero Runtime Dependencies & Zero Daemons**:
-   - Built on the Node.js standard library (`node:sqlite`, `node:fs`, `node:crypto`). Note that `node:sqlite` ships with Node 22.5+; on Node 20 search falls back to in-memory BM25.
-   - Package weight is **110 kB packed, 497 kB unpacked**, with zero runtime dependencies (`npm pack`, v0.4.0).
-   - Execution is **stateless**: the CLI runs, reads or writes, and exits. No daemon, so nothing holds RAM between calls.
+2. **Fully offline, with no API key.** Zero runtime dependencies, 110 kB packed, no daemon, no network, no LLM key. Hindsight needs a key for fact extraction even in local daemon mode. For air-gapped work, or for anyone unwilling to send code to an extraction service, that is the deciding factor.
 
-3. **100% Transparent & Git-Auditable**:
-   - Core handoff and context are human-readable Markdown (`handoff.md`, `project-context.md`).
-   - Session events and architectural decisions are append-only JSON Lines (`decisions.jsonl`, `sessions/*.jsonl`).
-   - Every single decision and task handoff is visible in `git status`, `git diff`, and Pull Requests.
-
-4. **Hybrid Search Without Heavy ML Runtimes**:
-   - Uses SQLite's native FTS5 engine for full-text BM25 search.
-   - Combines lexical search (SQLite FTS5 BM25) with local vector embeddings through Reciprocal Rank Fusion, with no external service and no Python toolchain. Quality is measured in `docs/benchmarks/`, including where the semantic path underperforms the lexical one.
+3. **Deterministic records.** A decision is stored as written, with its context, impact and `supersedes` chain. Nothing is inferred. LLM extraction is more powerful and can also be wrong in ways nobody sees; here, what you read is what was written.
 
 ---
 
-### 4. Direct Architectural Comparison Matrix
+### 4. Which to choose
 
-| Feature | Hermes Hindsight Plugin | Engrene Memory Bridge |
-|---|---|---|
-| **Target Audience** | Single-agent Hermes Python ecosystem | Multi-agent universal developer workflows |
-| **Cross-Tool Interoperability** | Via Hindsight's own API/SDK per tool | ✅ Any agent that can run a CLI or speak MCP (Hermes, Claude, Cursor, Codex, Gemini, Antigravity, Aider) |
-| **Runtime & Dependencies** | Python, `hindsight-all` installed on first use in embedded mode | ✅ Zero runtime dependencies (Node.js standard library; 110 kB packed, 497 kB unpacked) |
-| **Background Processes** | ❌ Requires background daemons/ports (`local_embedded`) or API | ✅ 0 daemons (Completely stateless CLI & stdio MCP) |
-| **Storage Format** | ❌ Opaque internal database / entity graph in `~/.hermes/` | ✅ Human-readable Markdown (`.md`) + JSONL in repo `.memory-bridge/` |
-| **Git & PR Auditing** | ❌ Incompatible with Git reviews | ✅ 100% Git-native, reviewable in `git diff` and PRs |
-| **Search Architecture** | Entity graph resolution + dense vectors | SQLite FTS5 (BM25) + dense vector embeddings + RRF |
-| **Context Window Consumption** | Dynamic graph traversal (variable token usage) | Ultra-lean, surgical context injection (~30-50 lines) |
-| **Secrets & Privacy** | Manual or relies on remote service policies | Proactive automatic redaction of API keys, tokens, and certs |
-| **Installation** | `hermes memory setup`, with a lazy install of the Python package on first use | 1-Click: `memory-bridge install hermes` |
+* **Want the broadest automatic memory across many coding agents, and are fine with an external store and an API key?** Use Hindsight.
+* **Need memory that is versioned with the code, reviewable in a PR, and runs with no network and no key?** Use Memory Bridge.
+* **Using Hermes and want conversational recall with an entity graph?** That is Hindsight's home ground.
+
+They are not mutually exclusive. `memory-bridge install hermes` registers the MCP server and skill in Hermes, and nothing stops Hindsight from running at the same time.
 
 ---
 
@@ -188,15 +173,13 @@ This comparison is written by the Memory Bridge maintainers, so treat it accordi
 - **Measured**: Memory Bridge's own package size, dependency count and retrieval quality. The retrieval numbers are in `docs/benchmarks/`, including the weak spot: on our own fixtures the pure semantic mode reaches P@3 0.315 and R@5 0.676, well below the lexical path.
 - **Not measured**: Hindsight's memory footprint, startup time and retrieval quality. We have not benchmarked it head to head. Statements about its runtime come from the Hermes catalog entry, not from our own runs.
 
-**Where Hindsight is likely the better tool**: it captures memory automatically on every turn, while Memory Bridge only records what an agent explicitly logs, so a forgetful agent leaves no trace. It also offers entity-graph retrieval, which we do not have. If you want rich conversational memory inside Hermes, that is its strength.
+Section 2 above lists where Hindsight is stronger; none of that is softened here.
 
 ---
 
-### 6. Can I Use Both?
+### 6. Running both
 
-**Yes.**
-* If you enjoy Hermes' entity graph for natural conversation history, you can keep Hindsight enabled in Hermes.
-* But for **repository context, architectural decisions, task continuity, and cross-agent collaboration** (switching between Claude Code, Cursor, and Hermes), use **Engrene Memory Bridge** as your project's single source of truth.
+Nothing stops you. Hindsight can keep handling conversational recall while Memory Bridge holds the project's written record.
 
 To set Memory Bridge as your Hermes memory provider:
 ```bash
