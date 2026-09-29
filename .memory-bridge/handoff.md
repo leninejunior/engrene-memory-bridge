@@ -1,7 +1,7 @@
 # Handoff
 
 ## Objective
-Publicar a 0.3.1 e fechar a release
+Corrigir a comparacao com o Hindsight no HERMES.md
 
 ## Recent Decisions
 - [dec-muc3rsh5] Obsidian Vault Export & JEV BM25 Hybrid Provider Support: Added optional Obsidian vault sync (memory-bridge obsidian --vault <path>) exporting Markdown notes with YAML frontmatter and wikilinks, and added 'jev' semantic provider option for joint code-text search combined with BM25 SQLite FTS5.
@@ -11,27 +11,22 @@ Publicar a 0.3.1 e fechar a release
 - [dec-mudi62tf] This repository commits its own .memory-bridge/ (selective .gitignore): Track config.json, decisions.jsonl, sessions/*.jsonl, handoff.md and project-context.md in Git; ignore only vector.sqlite, .lock and observations/. Every log/decision/handoff change is committed together with the code. redaction.customPatterns redacts IPv4(:port); hostnames and SSH aliases are not covered, so never put server names in summaries (the repo is public).
 
 ## Pending
-- publish npm package (requires npm login)
-- TODO: push community roadmap to remote
+- next: publicar 0.4.0 no npm com 2FA
+- next: dono publicar 0.4.0 no npm com 2FA
+- next: decidir issues 13 9 e 10
+- next: decidir entre o PR 18 e o trabalho do Codex na issue 15
+- next: decidir as issues 13 9 e 10
 - implementar derivacao de Pending
 - next: decidir entre PR 18 e o trabalho do Codex na issue 15
 - next: publicar 0.3.1 no npm
-- next: decidir entre o PR 18 e o trabalho do Codex na issue 15
-- next: decidir as issues 13 9 e 10
 
 ## Next Steps
-- Login to npm registry (`npm login`)
-- Publish package (`npm publish`)
-- Open PR for branch `leninejunior/community-roadmap`
-- created AGENTS.md
-- created CLAUDE.md
-- created .cursorrules
-- created copilot-instructions.md
-- updated README.md
+- verificar catalogo do hermes
+- corrigir 6 afirmacoes
+- adicionar nota de transparencia
+- next: publicar 0.4.0 no npm com 2FA
 
 ## Recent Artifacts
-- src/core/redaction.ts
-- tests/unit/gitignore-optin-and-leak-detection.test.ts
 - .gitignore
 - assets/screenshots/
 - README.md
@@ -42,3 +37,5 @@ Publicar a 0.3.1 e fechar a release
 - tests/unit/handoff-pending.test.ts
 - https://github.com/leninejunior/engrene-memory-bridge/releases/tag/v0.3.1
 - https://www.npmjs.com/package/engrene-memory-bridge
+- https://github.com/leninejunior/engrene-memory-bridge/releases/tag/v0.4.0
+- HERMES.md
