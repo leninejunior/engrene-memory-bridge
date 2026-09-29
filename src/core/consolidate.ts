@@ -59,11 +59,27 @@ export async function runConsolidation(
         const artifacts: string[] = [];
         const detectedRisks: string[] = [];
         let tool = "ai";
+        let observedBranch: string | undefined;
         let latestTs = new Date().toISOString();
 
         for (const obs of obsList) {
           latestTs = obs.ts || latestTs;
           tool = obs.tool || tool;
+
+          // Files can arrive on any observation, not only on tool_call: lifecycle hooks report
+          // them on the session boundaries and on each prompt, from git, because an agent that
+          // edits through the shell never names a file in its tool payload.
+          const fileList = Array.isArray(obs.payload?.files)
+            ? obs.payload.files.map(String)
+            : [obs.payload?.path, obs.payload?.file].filter(Boolean).map(String);
+          for (const f of fileList) {
+            if (f && !artifacts.includes(f)) {
+              artifacts.push(f);
+            }
+          }
+          if (typeof obs.payload?.branch === "string" && obs.payload.branch) {
+            observedBranch = obs.payload.branch;
+          }
 
           if (obs.type === "user_prompt") {
             const prompt = String(
@@ -75,20 +91,15 @@ export async function runConsolidation(
             if (prompt) {
               intent = prompt.slice(0, 120);
             }
-          } else if (obs.type === "tool_call") {
+          } else if (obs.type === "tool_call" || obs.type === "tool_result") {
             const toolName = String(obs.payload?.tool ?? obs.payload?.content ?? "action");
-            actions.push(`Executed ${toolName}`);
-
-            const fileList = Array.isArray(obs.payload?.files)
-              ? obs.payload.files.map(String)
-              : [obs.payload?.path, obs.payload?.file].filter(Boolean).map(String);
-
-            for (const f of fileList) {
-              if (f && !artifacts.includes(f)) {
-                artifacts.push(f);
-              }
+            const action = `Executed ${toolName}`;
+            if (!actions.includes(action)) {
+              actions.push(action);
             }
-          } else if (obs.type === "tool_result") {
+          }
+
+          if (obs.type === "tool_result") {
             const resultStr = JSON.stringify(obs.payload || "");
             if (/error|fail|exception|crash/i.test(resultStr)) {
               const riskMsg = `Potential failure in session ${sessionId}`;
@@ -105,7 +116,8 @@ export async function runConsolidation(
           ts: latestTs,
           tool,
           workspace: normalized,
-          branch: currentGitBranch(normalized),
+          // Prefer the branch the session actually ran on; the tree may have moved since.
+          branch: observedBranch ?? currentGitBranch(normalized),
           intent,
           actions: distinctActions.length > 0 ? distinctActions : ["completed observation tasks"],
           artifacts: distinctArtifacts,

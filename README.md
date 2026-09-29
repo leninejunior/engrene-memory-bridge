@@ -74,7 +74,22 @@ memory-bridge obsidian sync --vault ~/MyObsidianVault     # both (import first, 
 - Secret redaction runs on imported content, same as `log` and `decision add`.
 - Set `integrations.obsidian.vaultDir` and `"autoImport": true` in `.memory-bridge/config.json` to pull vault edits before every `resume`.
 
-### ⚙️ 2. Compound Engineering (CE) Multi-Agent Sync
+### 🪝 2. Automatic capture through lifecycle hooks
+Memory Bridge records what an agent explicitly logs. With Claude Code's lifecycle hooks it also records on its own, so a session still leaves a trace when nobody remembers to call `log`.
+
+```bash
+memory-bridge hook print claude   # paste the "hooks" block into .claude/settings.json
+```
+
+- Captures session start and end, each prompt, and edits through `Edit`, `Write`, `NotebookEdit` and `Bash`.
+- Touched files come from **git**, not from the tool payload, so an agent that edits with `sed` or a heredoc is recorded too.
+- The hook writes nothing to stdout and always exits 0, so it cannot disturb a session, and it does nothing in a directory that is not a memory-bridge workspace.
+- **Metadata only by default**: event, tool name, repo-relative paths and branch. Prompt and shell-command text are stored only if you opt in with `"capture": { "includePrompts": true, "includeCommands": true }`.
+- Observations land in `.memory-bridge/observations/` and become sessions on `memory-bridge consolidate`.
+
+Measured on a real session that never called `memory-bridge`: the edited file went from invisible to found by `search`.
+
+### ⚙️ 3. Compound Engineering (CE) Multi-Agent Sync
 Automatically sync active decisions, pitfalls, and memory lifecycle protocols across all popular AI assistant configuration files with a single command:
 
 ```bash
@@ -86,7 +101,7 @@ Instantly generates and updates:
 - `CLAUDE.md` (Claude Code / Anthropic CLI)
 - `.github/copilot-instructions.md` (GitHub Copilot)
 
-### 🔌 3. Model Context Protocol (MCP) Server
+### 🔌 4. Model Context Protocol (MCP) Server
 Native MCP stdio server support for Claude Desktop, Cursor, Windsurf, and VS Code.
 
 ```bash
@@ -104,7 +119,7 @@ memory-bridge mcp
 }
 ```
 
-### 🛠️ 4. Native Skill for Antigravity & Gemini
+### 🛠️ 5. Native Skill for Antigravity & Gemini
 Install the native skill globally or locally in your workspace:
 ```bash
 memory-bridge install antigravity
